@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
+  <Id>7a51ff24-4f42-4d60-9f9d-8d81a2b52b6f</Id>
+  <Version>0.1.0.0</Version>
+  <ProviderName>Local</ProviderName>
+  <DefaultLocale>zh-CN</DefaultLocale>
+  <DisplayName DefaultValue="公式编号" />
+  <Description DefaultValue="插入 Word 原生公式行、题注编号和正文交叉引用。" />
+  <IconUrl DefaultValue="https://localhost:5173/assets/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://localhost:5173/assets/icon-64.png" />
+  <SupportUrl DefaultValue="https://localhost:5173" />
+  <AppDomains>
+    <AppDomain>https://localhost:5173</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Document" />
+  </Hosts>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:5173/index.html" />
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <GetStarted>
+            <Title resid="GetStarted.Title" />
+            <Description resid="GetStarted.Description" />
+            <LearnMoreUrl resid="GetStarted.LearnMoreUrl" />
+          </GetStarted>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="EquationNumbering.Group">
+                <Label resid="Commands.GroupLabel" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+                <Control xsi:type="Button" id="EquationNumbering.ShowPane">
+                  <Label resid="Commands.ShowPaneLabel" />
+                  <Supertip>
+                    <Title resid="Commands.ShowPaneLabel" />
+                    <Description resid="Commands.ShowPaneTooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="https://localhost:5173/assets/icon-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://localhost:5173/assets/icon-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://localhost:5173/assets/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="Taskpane.Url" DefaultValue="https://localhost:5173/index.html" />
+        <bt:Url id="GetStarted.LearnMoreUrl" DefaultValue="https://localhost:5173" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="GetStarted.Title" DefaultValue="公式编号已加载" />
+        <bt:String id="Commands.GroupLabel" DefaultValue="公式编号" />
+        <bt:String id="Commands.ShowPaneLabel" DefaultValue="公式编号" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="GetStarted.Description" DefaultValue="打开任务窗格插入 Word 原生公式行和交叉引用。" />
+        <bt:String id="Commands.ShowPaneTooltip" DefaultValue="打开公式编号任务窗格。" />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>
