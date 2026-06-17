@@ -4,9 +4,9 @@
   "private": true,
   "description": "Word Office Add-in for inserting native equation lines with caption-based numbering and cross references.",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
+    "dev": "vite --host localhost",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host localhost"
   },
   "dependencies": {
     "@vitejs/plugin-basic-ssl": "^1.2.0",
