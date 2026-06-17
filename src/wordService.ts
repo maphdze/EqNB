@@ -74,9 +74,8 @@ export async function insertEquationReference(bookmarkName: string): Promise<voi
 
   await Word.run(async (context) => {
     const selection = context.document.getSelection();
-    selection.insertText("公式 ", Word.InsertLocation.replace);
-    const afterPrefix = context.document.getSelection();
-    afterPrefix.insertField(Word.InsertLocation.end, Word.FieldType.ref, buildReferenceText(bookmarkName), false);
+    const prefix = selection.insertText("公式 ", Word.InsertLocation.replace);
+    prefix.insertField(Word.InsertLocation.end, Word.FieldType.ref, buildReferenceText(bookmarkName), false);
     context.document.fields.load("items");
     await context.sync();
     context.document.fields.items.forEach((field) => field.updateResult());
