@@ -1,7 +1,6 @@
 Attribute VB_Name = "EquationNumbering"
 Option Explicit
 
-Private Const EQUATION_TAG As String = "WordEquationNumbering.Equation"
 Private Const EQUATION_SEQ_NAME As String = "Equation"
 
 Public Sub InsertEquationLinePlain()
@@ -59,65 +58,83 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
 
     Dim contentWidth As Single
     contentWidth = doc.PageSetup.PageWidth - doc.PageSetup.LeftMargin - doc.PageSetup.RightMargin
+    If contentWidth <= 0 Then contentWidth = InchesToPoints(6)
 
-    Selection.TypeParagraph
-    Dim paragraphRange As Range
-    Set paragraphRange = Selection.Paragraphs(1).Range
-    paragraphRange.ParagraphFormat.TabStops.ClearAll
-    paragraphRange.ParagraphFormat.TabStops.Add Position:=contentWidth / 2, Alignment:=wdAlignTabCenter
-    paragraphRange.ParagraphFormat.TabStops.Add Position:=contentWidth, Alignment:=wdAlignTabRight
-    paragraphRange.ParagraphFormat.SpaceBefore = 6
-    paragraphRange.ParagraphFormat.SpaceAfter = 6
-
-    Selection.TypeText vbTab
-
-    Dim equationStart As Long
-    equationStart = Selection.Start
-    Selection.TypeText ChrW(&H25A1)
-
-    Dim equationRange As Range
-    Set equationRange = doc.Range(equationStart, Selection.End)
-    doc.OMaths.Add equationRange
-    equationRange.OMaths(1).BuildUp
-    equationRange.Select
-    Selection.Collapse wdCollapseEnd
-
-    Selection.TypeText vbTab & "("
-
-    Dim captionStart As Long
-    captionStart = Selection.Start
-
-    If mode = "chapter" Then
-        doc.Fields.Add Range:=Selection.Range, Type:=wdFieldStyleRef, Text:="1 \s", PreserveFormatting:=False
-        Selection.Collapse wdCollapseEnd
-        Selection.TypeText separator
-    End If
-
-    doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:=EQUATION_SEQ_NAME & " \* ARABIC", PreserveFormatting:=False
-    Selection.Collapse wdCollapseEnd
-
-    Dim captionEnd As Long
-    captionEnd = Selection.End
-    Selection.TypeText ")"
+    Dim centerTab As Single
+    Dim rightTab As Single
+    centerTab = contentWidth / 2
+    rightTab = contentWidth
 
     Dim bookmarkName As String
     bookmarkName = CreateEquationBookmarkName()
-    doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(captionStart, captionEnd)
 
-    Set paragraphRange = Selection.Paragraphs(1).Range
-    Dim cc As ContentControl
-    Set cc = doc.ContentControls.Add(wdContentControlRichText, paragraphRange)
-    cc.Title = "Equation " & bookmarkName
-    cc.Tag = EQUATION_TAG
-    cc.LockContentControl = False
+    Dim insertStart As Long
+    insertStart = Selection.Start
+    Selection.Range.InsertXML BuildEquationLineXml(mode, separator, bookmarkName, PointsToTwips(centerTab), PointsToTwips(rightTab))
 
     doc.Fields.Update
-    equationRange.Select
+
+    Dim insertedRange As Range
+    Set insertedRange = doc.Range(insertStart, doc.Content.End)
+    If insertedRange.OMaths.Count > 0 Then
+        insertedRange.OMaths(1).Range.Select
+    End If
     Exit Sub
 
 Failed:
     MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
+
+Private Function BuildEquationLineXml(ByVal mode As String, ByVal separator As String, ByVal bookmarkName As String, ByVal centerTab As Long, ByVal rightTab As Long) As String
+    Dim bookmarkId As Long
+    bookmarkId = CLng(Int(Rnd() * 2000000000))
+
+    Dim captionXml As String
+    captionXml = "<w:r><w:t>(</w:t></w:r>" & _
+        "<w:bookmarkStart w:id=""" & CStr(bookmarkId) & """ w:name=""" & EscapeXml(bookmarkName) & """/>"
+
+    If mode = "chapter" Then
+        captionXml = captionXml & FieldXml("STYLEREF 1 \s") & _
+            "<w:r><w:t>" & EscapeXml(separator) & "</w:t></w:r>"
+    End If
+
+    captionXml = captionXml & FieldXml("SEQ " & EQUATION_SEQ_NAME & " \* ARABIC") & _
+        "<w:bookmarkEnd w:id=""" & CStr(bookmarkId) & """/>" & _
+        "<w:r><w:t>)</w:t></w:r>"
+
+    BuildEquationLineXml = "<w:p xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" " & _
+        "xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"">" & _
+        "<w:pPr><w:tabs>" & _
+        "<w:tab w:val=""center"" w:pos=""" & CStr(centerTab) & """/>" & _
+        "<w:tab w:val=""right"" w:pos=""" & CStr(rightTab) & """/>" & _
+        "</w:tabs><w:spacing w:before=""120"" w:after=""120""/>" & _
+        "<w:ind w:left=""0"" w:right=""0"" w:firstLine=""0""/></w:pPr>" & _
+        "<w:r><w:tab/></w:r>" & _
+        EmptyEquationXml() & _
+        "<w:r><w:tab/></w:r>" & _
+        captionXml & _
+        "</w:p>"
+End Function
+
+Private Function EmptyEquationXml() As String
+    EmptyEquationXml = "<m:oMath><m:r><w:rPr><w:rFonts w:ascii=""Cambria Math"" w:hAnsi=""Cambria Math""/></w:rPr><m:t>" & ChrW(&H25A1) & "</m:t></m:r></m:oMath>"
+End Function
+
+Private Function FieldXml(ByVal instruction As String) As String
+    FieldXml = "<w:fldSimple w:instr=""" & EscapeXml(instruction) & """><w:r><w:t>?</w:t></w:r></w:fldSimple>"
+End Function
+
+Private Function EscapeXml(ByVal value As String) As String
+    value = Replace(value, "&", "&amp;")
+    value = Replace(value, "<", "&lt;")
+    value = Replace(value, ">", "&gt;")
+    value = Replace(value, """", "&quot;")
+    EscapeXml = value
+End Function
+
+Private Function PointsToTwips(ByVal value As Single) As Long
+    PointsToTwips = CLng(value * 20)
+End Function
 
 Public Sub InsertEquationReference()
     On Error GoTo Failed
@@ -187,20 +204,34 @@ End Function
 
 Private Function GetEquationReferences() As Collection
     Dim refs As New Collection
-    Dim cc As ContentControl
+    Dim bookmark As Bookmark
 
-    For Each cc In ActiveDocument.ContentControls
-        If cc.Tag = EQUATION_TAG Then
-            Dim item(1) As String
-            item(0) = Replace(cc.Title, "Equation ", "")
-            item(1) = Trim$(Replace(cc.Range.Text, ChrW(13), ""))
-            If Len(item(1)) = 0 Then item(1) = cc.Title
-            refs.Add item
+    For Each bookmark In ActiveDocument.Bookmarks
+        If Left$(bookmark.Name, 4) = "_Eqn" Then
+            Dim item(2) As String
+            item(0) = bookmark.Name
+            item(1) = Trim$(Replace(bookmark.Range.Text, ChrW(13), ""))
+            item(2) = CStr(bookmark.Range.Start)
+            If Len(item(1)) = 0 Then item(1) = bookmark.Name
+            AddReferenceInDocumentOrder refs, item
         End If
-    Next cc
+    Next bookmark
 
     Set GetEquationReferences = refs
 End Function
+
+Private Sub AddReferenceInDocumentOrder(ByRef refs As Collection, ByRef item() As String)
+    Dim i As Long
+
+    For i = 1 To refs.Count
+        If CLng(item(2)) < CLng(refs(i)(2)) Then
+            refs.Add item, Before:=i
+            Exit Sub
+        End If
+    Next i
+
+    refs.Add item
+End Sub
 
 Private Function CreateEquationBookmarkName() As String
     Randomize
