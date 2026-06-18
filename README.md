@@ -1,48 +1,38 @@
-# Word 公式编号插件初版
+# EqNB
 
-这是按照 `word公式自动编号_技术路线.md` 做的 Office.js 任务窗格插件原型。
+EqNB is a Word `.dotm` add-in for inserting equation numbers and cross-references.
 
-## 已实现
+## Features
 
-- 任务窗格中选择编号格式：纯流水号、章节-流水号。
-- 在光标处插入一行 Word 原生 OMML 空公式。
-- 编号使用 Word 域：`SEQ Equation`，章节模式额外使用 `STYLEREF 1 \s`。
-- 每条公式编号建立隐藏书签，正文引用使用 `REF bookmark \h`。
-- 提供读取公式列表、插入正文引用、刷新全部域按钮。
+- Insert centered display equations with right-aligned sequential numbers.
+- Insert inline equations without numbering or display style.
+- Use Word fields for equation numbers and references: `SEQ Equation` and `REF bookmark \h`.
+- Store a document-wide reference format such as `({n})`, `式({n})`, `Eq.({n})`, or `[{n}]`.
+- Provide an `EqNB` ribbon tab whose labels and tips follow the Word UI language: English or Simplified Chinese.
 
-## 本地运行
+## Build
+
+Enable Word's VBA project object model access, then run:
 
 ```powershell
-npm install
-npm run dev
+cd C:\Software\AI\Word公式编辑器
+powershell -ExecutionPolicy Bypass -File tools\Build-Dotm.ps1
 ```
 
-然后在 Word 桌面版中旁加载 `manifest.xml`。任务窗格地址为：
+Output:
 
 ```text
-https://localhost:5173/index.html
+release\EqNB.dotm
 ```
 
-首次打开本地 HTTPS 地址时，浏览器或 Office 可能需要信任开发证书。
+## Install
 
-## 注意
-
-- 章节编号依赖文档中“标题 1”已经使用 Word 自动编号样式。
-- 插入公式后，编号和引用需要点击“刷新编号与引用”更新。
-- 初版通过 OOXML 插入空 OMML 公式，后续还需要在真实 Word 环境里验证不同 Word 版本对公式编辑态和字段更新的兼容性。
-
-## 宏模板版本
-
-如果不想使用 Office.js manifest，也可以走 `.dotm` 宏模板路线。源码在：
+Copy `release\EqNB.dotm` to:
 
 ```text
-vba\EquationNumbering.bas
+%APPDATA%\Microsoft\Word\STARTUP
 ```
 
-安装和生成说明见：
+Restart Word. The `EqNB` tab should appear in the ribbon.
 
-```text
-docs\dotm-install.md
-```
-
-自动生成 `.dotm` 需要 Word 开启“信任对 VBA 项目对象模型的访问”。当前机器的 Word 没有开启这个开关，所以脚本会被 Word 安全策略拦截。
+More details are in `docs\dotm-install.md`.

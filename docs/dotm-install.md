@@ -1,4 +1,4 @@
-# WordEquationNumbering.dotm 安装说明
+# EqNB.dotm 安装说明
 
 ## 生成模板
 
@@ -24,7 +24,7 @@ powershell -ExecutionPolicy Bypass -File tools\Build-Dotm.ps1
 输出文件：
 
 ```text
-release\WordEquationNumbering.dotm
+release\EqNB.dotm
 ```
 
 ## 手动导入源码
@@ -54,7 +54,7 @@ release\WordEquationNumbering.dotm
 - `InsertEquationReference`
 - `RefreshEquationFields`
 
-新版模板也会在 Word 顶部显示 `公式编号` 选项卡，可直接点击按钮完成常用操作。
+新版模板也会在 Word 顶部显示 `EqNB` 选项卡，可直接点击按钮完成常用操作。选项卡和提示词会根据 Word 当前界面语言自动显示英文或简体中文。
 
 ## 签名
 

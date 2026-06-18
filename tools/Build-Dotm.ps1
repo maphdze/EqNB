@@ -1,5 +1,5 @@
 param(
-    [string]$OutputPath = "release\WordEquationNumbering.dotm"
+    [string]$OutputPath = "release\EqNB.dotm"
 )
 
 $ErrorActionPreference = "Stop"
