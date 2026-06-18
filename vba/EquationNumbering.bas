@@ -192,8 +192,14 @@ Public Function EquationNumberingSmokeTest() As String
 End Function
 
 Private Function GetEquationReferences() As Collection
+    On Error GoTo RestoreHiddenBookmarks
+
     Dim refs As New Collection
     Dim bookmark As Bookmark
+    Dim showHiddenBefore As Boolean
+
+    showHiddenBefore = ActiveDocument.Bookmarks.ShowHidden
+    ActiveDocument.Bookmarks.ShowHidden = True
 
     For Each bookmark In ActiveDocument.Bookmarks
         If Left$(bookmark.Name, 4) = "_Eqn" Then
@@ -206,7 +212,14 @@ Private Function GetEquationReferences() As Collection
         End If
     Next bookmark
 
+    ActiveDocument.Bookmarks.ShowHidden = showHiddenBefore
+
     Set GetEquationReferences = refs
+    Exit Function
+
+RestoreHiddenBookmarks:
+    ActiveDocument.Bookmarks.ShowHidden = showHiddenBefore
+    Err.Raise Err.Number, Err.Source, Err.Description
 End Function
 
 Private Sub AddReferenceInDocumentOrder(ByRef refs As Collection, ByRef item() As String)
