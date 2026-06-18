@@ -2,61 +2,61 @@
 <customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
   <ribbon>
     <tabs>
-      <tab id="EquationNumberingTab" getLabel="RibbonGetLabel">
-        <group id="EquationInsertGroup" getLabel="RibbonGetLabel">
+      <tab id="EquationNumberingTab" label="EqNB">
+        <group id="EquationInsertGroup" label="插入">
           <button id="InsertPlainEquation"
-                  getLabel="RibbonGetLabel"
-                  getScreentip="RibbonGetScreentip"
-                  getSupertip="RibbonGetSupertip"
+                  label="编号公式"
+                  screentip="插入编号行间公式"
+                  supertip="插入一个居中的 Word 原生公式，并在右侧添加顺序编号。"
                   imageMso="EquationInsertNew"
                   size="large"
                   onAction="RibbonInsertPlain" />
           <button id="InsertInlineEquation"
-                  getLabel="RibbonGetLabel"
-                  getScreentip="RibbonGetScreentip"
-                  getSupertip="RibbonGetSupertip"
+                  label="行内公式"
+                  screentip="插入行内公式"
+                  supertip="插入一个 Word 原生行内公式，不添加编号，不使用 display style。"
                   imageMso="EquationInsertNew"
                   size="large"
                   onAction="RibbonInsertInlineEquation" />
           <button id="InsertChapterEquation"
-                  getLabel="RibbonGetLabel"
-                  getScreentip="RibbonGetScreentip"
-                  getSupertip="RibbonGetSupertip"
+                  label="章节编号"
+                  screentip="插入章节编号公式"
+                  supertip="使用标题 1 章节号加公式流水号，例如 2-3。"
                   imageMso="CaptionInsert"
                   size="large"
                   onAction="RibbonInsertChapterHyphen" />
           <button id="InsertChapterDotEquation"
-                  getLabel="RibbonGetLabel"
-                  getScreentip="RibbonGetScreentip"
-                  getSupertip="RibbonGetSupertip"
+                  label="章节.编号"
+                  screentip="插入句点分隔的章节编号公式"
+                  supertip="使用标题 1 章节号加公式流水号，例如 2.3。"
                   imageMso="Numbering"
                   onAction="RibbonInsertChapterDot" />
         </group>
-        <group id="EquationReferenceGroup" getLabel="RibbonGetLabel">
+        <group id="EquationReferenceGroup" label="引用">
           <button id="InsertEquationReference"
-                  getLabel="RibbonGetLabel"
-                  getScreentip="RibbonGetScreentip"
-                  getSupertip="RibbonGetSupertip"
+                  label="插入引用"
+                  screentip="插入公式交叉引用"
+                  supertip="从 EqNB 插入的公式中选择一个，在正文插入可刷新的 REF 引用。"
                   imageMso="CrossReferenceInsert"
                   size="large"
                   onAction="RibbonInsertReference" />
           <button id="SetEquationReferenceFormat"
-                  getLabel="RibbonGetLabel"
-                  getScreentip="RibbonGetScreentip"
-                  getSupertip="RibbonGetSupertip"
+                  label="引用格式"
+                  screentip="设置公式引用格式"
+                  supertip="为当前文档设置统一引用格式，例如 ({n})、式({n})、Eq.({n}) 或 [{n}]。"
                   imageMso="FieldCodes"
                   onAction="RibbonSetReferenceFormat" />
           <button id="RefreshEquationFields"
-                  getLabel="RibbonGetLabel"
-                  getScreentip="RibbonGetScreentip"
-                  getSupertip="RibbonGetSupertip"
+                  label="刷新"
+                  screentip="刷新编号和引用"
+                  supertip="刷新文档中的公式编号和正文引用域。"
                   imageMso="Refresh"
                   size="large"
                   onAction="RibbonRefreshFields" />
         </group>
-        <group id="EquationHelpGroup" getLabel="RibbonGetLabel">
+        <group id="EquationHelpGroup" label="帮助">
           <button id="EquationNumberingHelp"
-                  getLabel="RibbonGetLabel"
+                  label="说明"
                   imageMso="Help"
                   onAction="RibbonShowHelp" />
         </group>

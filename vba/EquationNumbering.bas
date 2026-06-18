@@ -41,7 +41,7 @@ Public Sub InsertInlineEquation()
     Exit Sub
 
 Failed:
-    MsgBox UiText("error.inline") & Err.Description, vbCritical, APP_TITLE
+    MsgBox "Failed to insert inline equation: " & Err.Description, vbCritical, APP_TITLE
 End Sub
 
 Public Sub InsertEquationLineChapterHyphen()
@@ -88,18 +88,6 @@ Public Sub RibbonShowHelp(ByVal control As IRibbonControl)
     ShowEquationNumberingHelp
 End Sub
 
-Public Sub RibbonGetLabel(ByVal control As IRibbonControl, ByRef returnedVal)
-    returnedVal = UiText(control.Id & ".label")
-End Sub
-
-Public Sub RibbonGetScreentip(ByVal control As IRibbonControl, ByRef returnedVal)
-    returnedVal = UiText(control.Id & ".screentip")
-End Sub
-
-Public Sub RibbonGetSupertip(ByVal control As IRibbonControl, ByRef returnedVal)
-    returnedVal = UiText(control.Id & ".supertip")
-End Sub
-
 Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional ByVal separator As String = "-")
     On Error GoTo Failed
 
@@ -108,7 +96,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
 
     If mode = "chapter" Then
         If Not HasNumberedHeadingOne(doc) Then
-            MsgBox UiText("error.chapterHeading"), vbExclamation, APP_TITLE
+            MsgBox "Chapter numbering requires at least one numbered Heading 1 paragraph.", vbExclamation, APP_TITLE
             Exit Sub
         End If
     End If
@@ -186,7 +174,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Exit Sub
 
 Failed:
-    MsgBox UiText("error.equationLine") & Err.Description, vbCritical, APP_TITLE
+    MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, APP_TITLE
 End Sub
 
 Private Function FindEquationAt(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As OMath
@@ -207,12 +195,12 @@ Public Sub InsertEquationReference()
     Set refs = GetEquationReferences()
 
     If refs.Count = 0 Then
-        MsgBox UiText("error.noEquations"), vbInformation, APP_TITLE
+        MsgBox "No equations inserted by EqNB were found.", vbInformation, APP_TITLE
         Exit Sub
     End If
 
     Dim prompt As String
-    prompt = UiText("reference.prompt") & vbCrLf & vbCrLf
+    prompt = "Enter the number of the equation to reference:" & vbCrLf & vbCrLf
 
     Dim i As Long
     For i = 1 To refs.Count
@@ -220,17 +208,17 @@ Public Sub InsertEquationReference()
     Next i
 
     Dim answer As String
-    answer = InputBox(prompt, UiText("reference.title"), "1")
+    answer = InputBox(prompt, "Insert Equation Reference", "1")
     If Len(Trim$(answer)) = 0 Then Exit Sub
     If Not IsNumeric(answer) Then
-        MsgBox UiText("error.referenceNumber"), vbExclamation, APP_TITLE
+        MsgBox "Please enter a number from the list.", vbExclamation, APP_TITLE
         Exit Sub
     End If
 
     Dim index As Long
     index = CLng(answer)
     If index < 1 Or index > refs.Count Then
-        MsgBox UiText("error.referenceRange"), vbExclamation, APP_TITLE
+        MsgBox "The selected number is out of range.", vbExclamation, APP_TITLE
         Exit Sub
     End If
 
@@ -248,168 +236,48 @@ Public Sub InsertEquationReference()
     Exit Sub
 
 Failed:
-    MsgBox UiText("error.reference") & Err.Description, vbCritical, APP_TITLE
+    MsgBox "Failed to insert equation reference: " & Err.Description, vbCritical, APP_TITLE
 End Sub
 
 Public Sub SetEquationReferenceFormat()
     On Error GoTo Failed
 
     Dim formatText As String
-    formatText = InputBox(UiText("format.prompt"), UiText("format.title"), GetEquationReferenceFormat(ActiveDocument))
+    formatText = InputBox("Set the reference format for this document. Use {n} where the equation number should appear." & vbCrLf & "Examples: ({n}), Equation ({n}), Eq.({n}), [{n}]", "Reference Format", GetEquationReferenceFormat(ActiveDocument))
     If Len(formatText) = 0 Then Exit Sub
     If InStr(formatText, "{n}") = 0 Then
-        MsgBox UiText("error.formatMarker"), vbExclamation, APP_TITLE
+        MsgBox "The format must contain {n}.", vbExclamation, APP_TITLE
         Exit Sub
     End If
 
     SetDocumentVariable ActiveDocument, REFERENCE_FORMAT_VARIABLE, formatText
-    MsgBox UiText("format.saved") & formatText, vbInformation, APP_TITLE
+    MsgBox "Reference format saved for this document: " & formatText, vbInformation, APP_TITLE
     Exit Sub
 
 Failed:
-    MsgBox UiText("error.format") & Err.Description, vbCritical, APP_TITLE
+    MsgBox "Failed to set reference format: " & Err.Description, vbCritical, APP_TITLE
 End Sub
 
 Public Sub RefreshEquationFields()
     On Error GoTo Failed
     ActiveDocument.Fields.Update
-    MsgBox UiText("refresh.done"), vbInformation, APP_TITLE
+    MsgBox "Equation numbers and references were refreshed.", vbInformation, APP_TITLE
     Exit Sub
 
 Failed:
-    MsgBox UiText("error.refresh") & Err.Description, vbCritical, APP_TITLE
+    MsgBox "Failed to refresh fields: " & Err.Description, vbCritical, APP_TITLE
 End Sub
 
 Public Sub ShowEquationNumberingHelp()
-    MsgBox UiText("help.body"), vbInformation, APP_TITLE
+    MsgBox "EqNB macros:" & vbCrLf & _
+        "1. Insert numbered display equations." & vbCrLf & _
+        "2. Insert inline equations without numbering." & vbCrLf & _
+        "3. Set one reference format for the document." & vbCrLf & _
+        "4. Insert cross-references and refresh fields.", vbInformation, APP_TITLE
 End Sub
 
 Public Function EquationNumberingSmokeTest() As String
     EquationNumberingSmokeTest = "OK"
-End Function
-
-Private Function UiText(ByVal key As String) As String
-    If IsSimplifiedChineseUi() Then
-        UiText = UiTextZhCn(key)
-    Else
-        UiText = UiTextEn(key)
-    End If
-
-    If Len(UiText) = 0 Then UiText = key
-End Function
-
-Private Function IsSimplifiedChineseUi() As Boolean
-    On Error GoTo UseEnglish
-
-    IsSimplifiedChineseUi = (Application.LanguageSettings.LanguageID(msoLanguageIDUI) = 2052)
-    Exit Function
-
-UseEnglish:
-    IsSimplifiedChineseUi = False
-End Function
-
-Private Function UiTextEn(ByVal key As String) As String
-    Select Case key
-        Case "EquationNumberingTab.label": UiTextEn = APP_TITLE
-        Case "EquationInsertGroup.label": UiTextEn = "Insert"
-        Case "EquationReferenceGroup.label": UiTextEn = "Reference"
-        Case "EquationHelpGroup.label": UiTextEn = "Help"
-        Case "InsertPlainEquation.label": UiTextEn = "Numbered"
-        Case "InsertPlainEquation.screentip": UiTextEn = "Insert numbered display equation"
-        Case "InsertPlainEquation.supertip": UiTextEn = "Insert a centered Word equation with a right-aligned sequential number."
-        Case "InsertInlineEquation.label": UiTextEn = "Inline"
-        Case "InsertInlineEquation.screentip": UiTextEn = "Insert inline equation"
-        Case "InsertInlineEquation.supertip": UiTextEn = "Insert a Word inline equation without numbering or display style."
-        Case "InsertChapterEquation.label": UiTextEn = "Chapter No."
-        Case "InsertChapterEquation.screentip": UiTextEn = "Insert chapter-numbered equation"
-        Case "InsertChapterEquation.supertip": UiTextEn = "Use Heading 1 chapter numbering plus equation sequence, such as 2-3."
-        Case "InsertChapterDotEquation.label": UiTextEn = "Chapter.No."
-        Case "InsertChapterDotEquation.screentip": UiTextEn = "Insert dot-separated chapter-numbered equation"
-        Case "InsertChapterDotEquation.supertip": UiTextEn = "Use Heading 1 chapter numbering plus equation sequence, such as 2.3."
-        Case "InsertEquationReference.label": UiTextEn = "Insert Ref"
-        Case "InsertEquationReference.screentip": UiTextEn = "Insert equation cross-reference"
-        Case "InsertEquationReference.supertip": UiTextEn = "Choose an equation inserted by EqNB and insert a refreshable REF field."
-        Case "SetEquationReferenceFormat.label": UiTextEn = "Ref Format"
-        Case "SetEquationReferenceFormat.screentip": UiTextEn = "Set equation reference format"
-        Case "SetEquationReferenceFormat.supertip": UiTextEn = "Set the document-wide reference format, such as ({n}), Equation ({n}), Eq.({n}), or [{n}]."
-        Case "RefreshEquationFields.label": UiTextEn = "Refresh"
-        Case "RefreshEquationFields.screentip": UiTextEn = "Refresh numbers and references"
-        Case "RefreshEquationFields.supertip": UiTextEn = "Refresh equation numbers and reference fields in the document."
-        Case "EquationNumberingHelp.label": UiTextEn = "About"
-        Case "reference.title": UiTextEn = "Insert Equation Reference"
-        Case "reference.prompt": UiTextEn = "Enter the number of the equation to reference:"
-        Case "format.title": UiTextEn = "Reference Format"
-        Case "format.prompt": UiTextEn = "Set the reference format for this document. Use {n} where the equation number should appear." & vbCrLf & "Examples: ({n}), Equation ({n}), Eq.({n}), [{n}]"
-        Case "format.saved": UiTextEn = "Reference format saved for this document: "
-        Case "refresh.done": UiTextEn = "Equation numbers and references were refreshed."
-        Case "help.body": UiTextEn = "EqNB macros:" & vbCrLf & _
-            "1. Insert numbered display equations." & vbCrLf & _
-            "2. Insert inline equations without numbering." & vbCrLf & _
-            "3. Set one reference format for the document." & vbCrLf & _
-            "4. Insert cross-references and refresh fields."
-        Case "error.inline": UiTextEn = "Failed to insert inline equation: "
-        Case "error.chapterHeading": UiTextEn = "Chapter numbering requires at least one numbered Heading 1 paragraph."
-        Case "error.equationLine": UiTextEn = "Failed to insert equation line: "
-        Case "error.noEquations": UiTextEn = "No equations inserted by EqNB were found."
-        Case "error.referenceNumber": UiTextEn = "Please enter a number from the list."
-        Case "error.referenceRange": UiTextEn = "The selected number is out of range."
-        Case "error.reference": UiTextEn = "Failed to insert equation reference: "
-        Case "error.formatMarker": UiTextEn = "The format must contain {n}."
-        Case "error.format": UiTextEn = "Failed to set reference format: "
-        Case "error.refresh": UiTextEn = "Failed to refresh fields: "
-    End Select
-End Function
-
-Private Function UiTextZhCn(ByVal key As String) As String
-    Select Case key
-        Case "EquationNumberingTab.label": UiTextZhCn = APP_TITLE
-        Case "EquationInsertGroup.label": UiTextZhCn = "插入"
-        Case "EquationReferenceGroup.label": UiTextZhCn = "引用"
-        Case "EquationHelpGroup.label": UiTextZhCn = "帮助"
-        Case "InsertPlainEquation.label": UiTextZhCn = "编号公式"
-        Case "InsertPlainEquation.screentip": UiTextZhCn = "插入编号行间公式"
-        Case "InsertPlainEquation.supertip": UiTextZhCn = "插入一个居中的 Word 原生公式，并在右侧添加顺序编号。"
-        Case "InsertInlineEquation.label": UiTextZhCn = "行内公式"
-        Case "InsertInlineEquation.screentip": UiTextZhCn = "插入行内公式"
-        Case "InsertInlineEquation.supertip": UiTextZhCn = "插入一个 Word 原生行内公式，不添加编号，不使用 display style。"
-        Case "InsertChapterEquation.label": UiTextZhCn = "章节编号"
-        Case "InsertChapterEquation.screentip": UiTextZhCn = "插入章节编号公式"
-        Case "InsertChapterEquation.supertip": UiTextZhCn = "使用标题 1 章节号加公式流水号，例如 2-3。"
-        Case "InsertChapterDotEquation.label": UiTextZhCn = "章节.编号"
-        Case "InsertChapterDotEquation.screentip": UiTextZhCn = "插入句点分隔的章节编号公式"
-        Case "InsertChapterDotEquation.supertip": UiTextZhCn = "使用标题 1 章节号加公式流水号，例如 2.3。"
-        Case "InsertEquationReference.label": UiTextZhCn = "插入引用"
-        Case "InsertEquationReference.screentip": UiTextZhCn = "插入公式交叉引用"
-        Case "InsertEquationReference.supertip": UiTextZhCn = "从 EqNB 插入的公式中选择一个，在正文插入可刷新的 REF 引用。"
-        Case "SetEquationReferenceFormat.label": UiTextZhCn = "引用格式"
-        Case "SetEquationReferenceFormat.screentip": UiTextZhCn = "设置公式引用格式"
-        Case "SetEquationReferenceFormat.supertip": UiTextZhCn = "为当前文档设置统一引用格式，例如 ({n})、式({n})、Eq.({n}) 或 [{n}]。"
-        Case "RefreshEquationFields.label": UiTextZhCn = "刷新"
-        Case "RefreshEquationFields.screentip": UiTextZhCn = "刷新编号和引用"
-        Case "RefreshEquationFields.supertip": UiTextZhCn = "刷新文档中的公式编号和正文引用域。"
-        Case "EquationNumberingHelp.label": UiTextZhCn = "说明"
-        Case "reference.title": UiTextZhCn = "插入公式引用"
-        Case "reference.prompt": UiTextZhCn = "请输入要引用的公式序号："
-        Case "format.title": UiTextZhCn = "引用格式"
-        Case "format.prompt": UiTextZhCn = "设置当前文档的统一引用格式。用 {n} 表示公式编号位置。" & vbCrLf & "示例：({n})、式({n})、Eq.({n})、[{n}]"
-        Case "format.saved": UiTextZhCn = "已保存当前文档的引用格式："
-        Case "refresh.done": UiTextZhCn = "公式编号和引用已刷新。"
-        Case "help.body": UiTextZhCn = "EqNB 宏：" & vbCrLf & _
-            "1. 插入带右侧编号的行间公式。" & vbCrLf & _
-            "2. 插入不编号的行内公式。" & vbCrLf & _
-            "3. 为当前文档设置统一引用格式。" & vbCrLf & _
-            "4. 插入交叉引用并刷新域。"
-        Case "error.inline": UiTextZhCn = "插入行内公式失败："
-        Case "error.chapterHeading": UiTextZhCn = "章节编号需要至少一个已编号的“标题 1”段落。"
-        Case "error.equationLine": UiTextZhCn = "插入编号公式失败："
-        Case "error.noEquations": UiTextZhCn = "没有找到由 EqNB 插入的公式。"
-        Case "error.referenceNumber": UiTextZhCn = "请输入列表中的数字。"
-        Case "error.referenceRange": UiTextZhCn = "选择的序号超出范围。"
-        Case "error.reference": UiTextZhCn = "插入公式引用失败："
-        Case "error.formatMarker": UiTextZhCn = "格式中必须包含 {n}。"
-        Case "error.format": UiTextZhCn = "设置引用格式失败："
-        Case "error.refresh": UiTextZhCn = "刷新域失败："
-    End Select
 End Function
 
 Private Function GetEquationReferenceFormat(ByVal doc As Document) As String

@@ -54,7 +54,7 @@ release\EqNB.dotm
 - `InsertEquationReference`
 - `RefreshEquationFields`
 
-新版模板也会在 Word 顶部显示 `EqNB` 选项卡，可直接点击按钮完成常用操作。选项卡和提示词会根据 Word 当前界面语言自动显示英文或简体中文。
+新版模板也会在 Word 顶部显示 `EqNB` 选项卡，可直接点击按钮完成常用操作。为避免 VBA 编码兼容问题，工具栏文字固定为中文，宏弹窗提示保持英文。
 
 ## 签名
 

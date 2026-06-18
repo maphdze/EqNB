@@ -8,7 +8,7 @@ EqNB is a Word `.dotm` add-in for inserting equation numbers and cross-reference
 - Insert inline equations without numbering or display style.
 - Use Word fields for equation numbers and references: `SEQ Equation` and `REF bookmark \h`.
 - Store a document-wide reference format such as `({n})`, `式({n})`, `Eq.({n})`, or `[{n}]`.
-- Provide an `EqNB` ribbon tab whose labels and tips follow the Word UI language: English or Simplified Chinese.
+- Provide a Simplified Chinese `EqNB` ribbon tab.
 
 ## Build
 
