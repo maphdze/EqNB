@@ -92,10 +92,8 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Dim equationRange As Range
     Set equationRange = doc.Range(equationStart, equationEnd)
 
-    Dim equationMath As OMath
     doc.OMaths.Add equationRange
-    Set equationMath = doc.OMaths(doc.OMaths.Count)
-    Set equationRange = equationMath.Range
+    Set equationRange = FindEquationRangeAt(doc, equationStart, equationEnd)
 
     Selection.TypeText vbTab & "("
 
@@ -118,12 +116,30 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(captionStart, captionEnd)
 
     doc.Fields.Update
-    equationMath.Range.Select
+    equationRange.Select
     Exit Sub
 
 Failed:
     MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
+
+Private Function FindEquationRangeAt(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As Range
+    Dim equation As OMath
+    Dim bestRange As Range
+
+    For Each equation In doc.OMaths
+        If equation.Range.Start <= rangeStart And equation.Range.End >= rangeEnd Then
+            Set bestRange = equation.Range
+            Exit For
+        End If
+    Next equation
+
+    If bestRange Is Nothing Then
+        Set bestRange = doc.Range(rangeStart, rangeEnd)
+    End If
+
+    Set FindEquationRangeAt = bestRange
+End Function
 
 Public Sub InsertEquationReference()
     On Error GoTo Failed
@@ -159,9 +175,19 @@ Public Sub InsertEquationReference()
         Exit Sub
     End If
 
-    Selection.TypeText "Equation "
+    Dim formatText As String
+    formatText = InputBox("Enter reference format. Use {n} where the equation number should appear." & vbCrLf & _
+        "Examples: ({n}), Equation ({n}), Eq.({n}), [{n}]", "Reference Format", "({n})")
+    If Len(formatText) = 0 Then Exit Sub
+    If InStr(formatText, "{n}") = 0 Then formatText = formatText & "{n}"
+
+    Dim markerPosition As Long
+    markerPosition = InStr(formatText, "{n}")
+
+    Selection.TypeText Left$(formatText, markerPosition - 1)
     ActiveDocument.Fields.Add Range:=Selection.Range, Type:=wdFieldRef, Text:=refs(index)(0) & " \h", PreserveFormatting:=False
     Selection.Collapse wdCollapseEnd
+    Selection.TypeText Mid$(formatText, markerPosition + 3)
     ActiveDocument.Fields.Update
     Exit Sub
 
