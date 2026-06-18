@@ -26,17 +26,7 @@ Public Sub InsertInlineEquation()
     Set equationRange = doc.Range(equationStart, equationEnd)
 
     doc.OMaths.Add equationRange
-    Set equationRange = doc.Range(equationStart, equationEnd)
-
-    Dim equationMath As OMath
-    Set equationMath = FindEquationAt(doc, equationStart, equationEnd)
-    If Not equationMath Is Nothing Then
-        On Error Resume Next
-        equationMath.Type = wdOMathInline
-        On Error GoTo Failed
-        Set equationRange = equationMath.Range
-    End If
-
+    Set equationRange = FindEquationRangeAt(doc, equationStart, equationEnd)
     equationRange.Select
     Exit Sub
 
@@ -94,10 +84,6 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Dim doc As Document
     Set doc = ActiveDocument
 
-    Dim tabIndentKeyBefore As Boolean
-    tabIndentKeyBefore = Options.TabIndentKey
-    Options.TabIndentKey = False
-
     If mode = "chapter" Then
         If Not HasNumberedHeadingOne(doc) Then
             MsgBox "Chapter numbering requires at least one numbered Heading 1 paragraph.", vbExclamation, APP_TITLE
@@ -142,16 +128,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Set equationRange = doc.Range(equationStart, equationEnd)
 
     doc.OMaths.Add equationRange
-    Dim equationMath As OMath
-    Set equationMath = FindEquationAt(doc, equationStart, equationEnd)
-    If Not equationMath Is Nothing Then
-        On Error Resume Next
-        equationMath.Type = wdOMathDisplay
-        On Error GoTo Failed
-        Set equationRange = equationMath.Range
-    Else
-        Set equationRange = doc.Range(equationStart, equationEnd)
-    End If
+    Set equationRange = FindEquationRangeAt(doc, equationStart, equationEnd)
 
     Selection.TypeText vbTab & "("
 
@@ -174,24 +151,29 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(captionStart, captionEnd)
 
     doc.Fields.Update
-    Options.TabIndentKey = tabIndentKeyBefore
     equationRange.Select
     Exit Sub
 
 Failed:
-    Options.TabIndentKey = tabIndentKeyBefore
     MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, APP_TITLE
 End Sub
 
-Private Function FindEquationAt(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As OMath
+Private Function FindEquationRangeAt(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As Range
     Dim equation As OMath
+    Dim bestRange As Range
 
     For Each equation In doc.OMaths
         If equation.Range.Start <= rangeStart And equation.Range.End >= rangeEnd Then
-            Set FindEquationAt = equation
+            Set bestRange = equation.Range
             Exit For
         End If
     Next equation
+
+    If bestRange Is Nothing Then
+        Set bestRange = doc.Range(rangeStart, rangeEnd)
+    End If
+
+    Set FindEquationRangeAt = bestRange
 End Function
 
 Public Sub InsertEquationReference()
@@ -249,7 +231,8 @@ Public Sub SetEquationReferenceFormat()
     On Error GoTo Failed
 
     Dim formatText As String
-    formatText = InputBox("Set the reference format for this document. Use {n} where the equation number should appear." & vbCrLf & "Examples: ({n}), Equation ({n}), Eq.({n}), [{n}]", "Reference Format", GetEquationReferenceFormat(ActiveDocument))
+    formatText = InputBox("Set the reference format for this document. Use {n} where the equation number should appear." & vbCrLf & _
+        "Examples: ({n}), Equation ({n}), Eq.({n}), [{n}]", "Reference Format", GetEquationReferenceFormat(ActiveDocument))
     If Len(formatText) = 0 Then Exit Sub
     If InStr(formatText, "{n}") = 0 Then
         MsgBox "The format must contain {n}.", vbExclamation, APP_TITLE
@@ -276,7 +259,7 @@ End Sub
 
 Public Sub ShowEquationNumberingHelp()
     MsgBox "EqNB macros:" & vbCrLf & _
-        "1. Insert numbered display equations." & vbCrLf & _
+        "1. Insert numbered equations." & vbCrLf & _
         "2. Insert inline equations without numbering." & vbCrLf & _
         "3. Set one reference format for the document." & vbCrLf & _
         "4. Insert cross-references and refresh fields.", vbInformation, APP_TITLE
