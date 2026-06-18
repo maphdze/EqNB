@@ -94,6 +94,10 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Dim doc As Document
     Set doc = ActiveDocument
 
+    Dim tabIndentKeyBefore As Boolean
+    tabIndentKeyBefore = Options.TabIndentKey
+    Options.TabIndentKey = False
+
     If mode = "chapter" Then
         If Not HasNumberedHeadingOne(doc) Then
             MsgBox "Chapter numbering requires at least one numbered Heading 1 paragraph.", vbExclamation, APP_TITLE
@@ -126,12 +130,12 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     paragraphRange.ParagraphFormat.SpaceBefore = 6
     paragraphRange.ParagraphFormat.SpaceAfter = 6
 
-    InsertTextAtSelection vbTab
+    Selection.TypeText vbTab
 
     Dim equationStart As Long
     Dim equationEnd As Long
     equationStart = Selection.Start
-    InsertTextAtSelection ChrW(&H25A1)
+    Selection.TypeText ChrW(&H25A1)
     equationEnd = Selection.End
 
     Dim equationRange As Range
@@ -149,7 +153,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
         Set equationRange = doc.Range(equationStart, equationEnd)
     End If
 
-    InsertTextAtSelection vbTab & "("
+    Selection.TypeText vbTab & "("
 
     Dim captionStart As Long
     captionStart = Selection.Start
@@ -157,7 +161,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     If mode = "chapter" Then
         doc.Fields.Add Range:=Selection.Range, Type:=wdFieldStyleRef, Text:="1 \s", PreserveFormatting:=False
         Selection.Collapse wdCollapseEnd
-        InsertTextAtSelection separator
+        Selection.TypeText separator
     End If
 
     doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:=EQUATION_SEQ_NAME & " \* ARABIC", PreserveFormatting:=False
@@ -165,21 +169,18 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
 
     Dim captionEnd As Long
     captionEnd = Selection.End
-    InsertTextAtSelection ")"
+    Selection.TypeText ")"
 
     doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(captionStart, captionEnd)
 
     doc.Fields.Update
+    Options.TabIndentKey = tabIndentKeyBefore
     equationRange.Select
     Exit Sub
 
 Failed:
+    Options.TabIndentKey = tabIndentKeyBefore
     MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, APP_TITLE
-End Sub
-
-Private Sub InsertTextAtSelection(ByVal text As String)
-    Selection.Range.InsertAfter text
-    Selection.Collapse wdCollapseEnd
 End Sub
 
 Private Function FindEquationAt(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As OMath
