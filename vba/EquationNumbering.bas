@@ -28,7 +28,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
 
     If mode = "chapter" Then
         If Not HasNumberedHeadingOne(doc) Then
-            MsgBox "章节编号需要文档中至少有一个使用“标题 1”且带自动编号的章节标题。", vbExclamation, "公式编号"
+            MsgBox "Chapter numbering requires at least one numbered Heading 1 paragraph.", vbExclamation, "Equation Numbering"
             Exit Sub
         End If
     End If
@@ -83,7 +83,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Set paragraphRange = Selection.Paragraphs(1).Range
     Dim cc As ContentControl
     Set cc = doc.ContentControls.Add(wdContentControlRichText, paragraphRange)
-    cc.Title = "公式 " & bookmarkName
+    cc.Title = "Equation " & bookmarkName
     cc.Tag = EQUATION_TAG
     cc.LockContentControl = False
 
@@ -92,7 +92,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Exit Sub
 
 Failed:
-    MsgBox "插入公式行失败：" & Err.Description, vbCritical, "公式编号"
+    MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
 
 Public Sub InsertEquationReference()
@@ -102,12 +102,12 @@ Public Sub InsertEquationReference()
     Set refs = GetEquationReferences()
 
     If refs.Count = 0 Then
-        MsgBox "没有找到由本插件插入的公式。请先插入公式行。", vbInformation, "公式编号"
+        MsgBox "No equations inserted by this template were found.", vbInformation, "Equation Numbering"
         Exit Sub
     End If
 
     Dim prompt As String
-    prompt = "输入要引用的公式序号：" & vbCrLf & vbCrLf
+    prompt = "Enter the number of the equation to reference:" & vbCrLf & vbCrLf
 
     Dim i As Long
     For i = 1 To refs.Count
@@ -115,47 +115,51 @@ Public Sub InsertEquationReference()
     Next i
 
     Dim answer As String
-    answer = InputBox(prompt, "插入公式引用", "1")
+    answer = InputBox(prompt, "Insert Equation Reference", "1")
     If Len(Trim$(answer)) = 0 Then Exit Sub
     If Not IsNumeric(answer) Then
-        MsgBox "请输入列表中的数字序号。", vbExclamation, "公式编号"
+        MsgBox "Please enter a number from the list.", vbExclamation, "Equation Numbering"
         Exit Sub
     End If
 
     Dim index As Long
     index = CLng(answer)
     If index < 1 Or index > refs.Count Then
-        MsgBox "序号超出范围。", vbExclamation, "公式编号"
+        MsgBox "The selected number is out of range.", vbExclamation, "Equation Numbering"
         Exit Sub
     End If
 
-    Selection.TypeText "公式 "
+    Selection.TypeText "Equation "
     ActiveDocument.Fields.Add Range:=Selection.Range, Type:=wdFieldRef, Text:=refs(index)(0) & " \h", PreserveFormatting:=False
     Selection.Collapse wdCollapseEnd
     ActiveDocument.Fields.Update
     Exit Sub
 
 Failed:
-    MsgBox "插入公式引用失败：" & Err.Description, vbCritical, "公式编号"
+    MsgBox "Failed to insert equation reference: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
 
 Public Sub RefreshEquationFields()
     On Error GoTo Failed
     ActiveDocument.Fields.Update
-    MsgBox "已刷新文档中的编号和引用域。", vbInformation, "公式编号"
+    MsgBox "Equation numbers and references were refreshed.", vbInformation, "Equation Numbering"
     Exit Sub
 
 Failed:
-    MsgBox "刷新失败：" & Err.Description, vbCritical, "公式编号"
+    MsgBox "Failed to refresh fields: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
 
 Public Sub ShowEquationNumberingHelp()
-    MsgBox "公式编号宏：" & vbCrLf & _
-        "1. 运行 InsertEquationLinePlain 插入纯流水号公式。" & vbCrLf & _
-        "2. 运行 InsertEquationLineChapterHyphen/Dot/Colon 插入章节编号公式。" & vbCrLf & _
-        "3. 运行 InsertEquationReference 插入正文引用。" & vbCrLf & _
-        "4. 运行 RefreshEquationFields 刷新编号与引用。", vbInformation, "公式编号"
+    MsgBox "Equation Numbering macros:" & vbCrLf & _
+        "1. Run InsertEquationLinePlain for plain equation numbering." & vbCrLf & _
+        "2. Run InsertEquationLineChapterHyphen/Dot/Colon for chapter numbering." & vbCrLf & _
+        "3. Run InsertEquationReference to insert a cross reference." & vbCrLf & _
+        "4. Run RefreshEquationFields to update numbers and references.", vbInformation, "Equation Numbering"
 End Sub
+
+Public Function EquationNumberingSmokeTest() As String
+    EquationNumberingSmokeTest = "OK"
+End Function
 
 Private Function GetEquationReferences() As Collection
     Dim refs As New Collection
@@ -164,7 +168,7 @@ Private Function GetEquationReferences() As Collection
     For Each cc In ActiveDocument.ContentControls
         If cc.Tag = EQUATION_TAG Then
             Dim item(1) As String
-            item(0) = Replace(cc.Title, "公式 ", "")
+            item(0) = Replace(cc.Title, "Equation ", "")
             item(1) = Trim$(Replace(cc.Range.Text, ChrW(13), ""))
             If Len(item(1)) = 0 Then item(1) = cc.Title
             refs.Add item
