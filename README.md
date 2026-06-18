@@ -30,3 +30,19 @@ https://localhost:5173/index.html
 - 章节编号依赖文档中“标题 1”已经使用 Word 自动编号样式。
 - 插入公式后，编号和引用需要点击“刷新编号与引用”更新。
 - 初版通过 OOXML 插入空 OMML 公式，后续还需要在真实 Word 环境里验证不同 Word 版本对公式编辑态和字段更新的兼容性。
+
+## 宏模板版本
+
+如果不想使用 Office.js manifest，也可以走 `.dotm` 宏模板路线。源码在：
+
+```text
+vba\EquationNumbering.bas
+```
+
+安装和生成说明见：
+
+```text
+docs\dotm-install.md
+```
+
+自动生成 `.dotm` 需要 Word 开启“信任对 VBA 项目对象模型的访问”。当前机器的 Word 没有开启这个开关，所以脚本会被 Word 安全策略拦截。
