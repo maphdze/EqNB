@@ -11,6 +11,13 @@
                   imageMso="EquationInsertNew"
                   size="large"
                   onAction="RibbonInsertPlain" />
+          <button id="InsertInlineEquation"
+                  label="行内公式"
+                  screentip="插入行内公式"
+                  supertip="在光标处插入一个 Word 原生行内公式，不添加编号，不使用 display style。"
+                  imageMso="EquationInsertNew"
+                  size="large"
+                  onAction="RibbonInsertInlineEquation" />
           <button id="InsertChapterEquation"
                   label="章节编号"
                   screentip="插入章节编号公式"
@@ -33,6 +40,12 @@
                   imageMso="CrossReferenceInsert"
                   size="large"
                   onAction="RibbonInsertReference" />
+          <button id="SetEquationReferenceFormat"
+                  label="引用格式"
+                  screentip="设置公式引用格式"
+                  supertip="为当前文档设置统一的公式引用格式，例如 ({n})、式({n})、Eq.({n}) 或 [{n}]。"
+                  imageMso="FieldCodes"
+                  onAction="RibbonSetReferenceFormat" />
           <button id="RefreshEquationFields"
                   label="刷新"
                   screentip="刷新编号和引用"

@@ -2,9 +2,45 @@ Attribute VB_Name = "EquationNumbering"
 Option Explicit
 
 Private Const EQUATION_SEQ_NAME As String = "Equation"
+Private Const REFERENCE_FORMAT_VARIABLE As String = "EquationReferenceFormat"
+Private Const DEFAULT_REFERENCE_FORMAT As String = "({n})"
 
 Public Sub InsertEquationLinePlain()
     InsertEquationLine "plain", "-"
+End Sub
+
+Public Sub InsertInlineEquation()
+    On Error GoTo Failed
+
+    Dim doc As Document
+    Set doc = ActiveDocument
+
+    Dim equationStart As Long
+    Dim equationEnd As Long
+    equationStart = Selection.Start
+    Selection.TypeText ChrW(&H25A1)
+    equationEnd = Selection.End
+
+    Dim equationRange As Range
+    Set equationRange = doc.Range(equationStart, equationEnd)
+
+    doc.OMaths.Add equationRange
+    Set equationRange = doc.Range(equationStart, equationEnd)
+
+    Dim equationMath As OMath
+    Set equationMath = FindEquationAt(doc, equationStart, equationEnd)
+    If Not equationMath Is Nothing Then
+        On Error Resume Next
+        equationMath.Type = wdOMathInline
+        On Error GoTo Failed
+        Set equationRange = equationMath.Range
+    End If
+
+    equationRange.Select
+    Exit Sub
+
+Failed:
+    MsgBox "Failed to insert inline equation: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
 
 Public Sub InsertEquationLineChapterHyphen()
@@ -23,6 +59,10 @@ Public Sub RibbonInsertPlain(ByVal control As IRibbonControl)
     InsertEquationLinePlain
 End Sub
 
+Public Sub RibbonInsertInlineEquation(ByVal control As IRibbonControl)
+    InsertInlineEquation
+End Sub
+
 Public Sub RibbonInsertChapterHyphen(ByVal control As IRibbonControl)
     InsertEquationLineChapterHyphen
 End Sub
@@ -33,6 +73,10 @@ End Sub
 
 Public Sub RibbonInsertReference(ByVal control As IRibbonControl)
     InsertEquationReference
+End Sub
+
+Public Sub RibbonSetReferenceFormat(ByVal control As IRibbonControl)
+    SetEquationReferenceFormat
 End Sub
 
 Public Sub RibbonRefreshFields(ByVal control As IRibbonControl)
@@ -178,10 +222,7 @@ Public Sub InsertEquationReference()
     End If
 
     Dim formatText As String
-    formatText = InputBox("Enter reference format. Use {n} where the equation number should appear." & vbCrLf & _
-        "Examples: ({n}), Equation ({n}), Eq.({n}), [{n}]", "Reference Format", "({n})")
-    If Len(formatText) = 0 Then Exit Sub
-    If InStr(formatText, "{n}") = 0 Then formatText = formatText & "{n}"
+    formatText = GetEquationReferenceFormat(ActiveDocument)
 
     Dim markerPosition As Long
     markerPosition = InStr(formatText, "{n}")
@@ -195,6 +236,26 @@ Public Sub InsertEquationReference()
 
 Failed:
     MsgBox "Failed to insert equation reference: " & Err.Description, vbCritical, "Equation Numbering"
+End Sub
+
+Public Sub SetEquationReferenceFormat()
+    On Error GoTo Failed
+
+    Dim formatText As String
+    formatText = InputBox("Set the reference format for this document. Use {n} where the equation number should appear." & vbCrLf & _
+        "Examples: ({n}), Equation ({n}), Eq.({n}), [{n}]", "Reference Format", GetEquationReferenceFormat(ActiveDocument))
+    If Len(formatText) = 0 Then Exit Sub
+    If InStr(formatText, "{n}") = 0 Then
+        MsgBox "The format must contain {n}.", vbExclamation, "Equation Numbering"
+        Exit Sub
+    End If
+
+    SetDocumentVariable ActiveDocument, REFERENCE_FORMAT_VARIABLE, formatText
+    MsgBox "Reference format saved for this document: " & formatText, vbInformation, "Equation Numbering"
+    Exit Sub
+
+Failed:
+    MsgBox "Failed to set reference format: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
 
 Public Sub RefreshEquationFields()
@@ -218,6 +279,28 @@ End Sub
 Public Function EquationNumberingSmokeTest() As String
     EquationNumberingSmokeTest = "OK"
 End Function
+
+Private Function GetEquationReferenceFormat(ByVal doc As Document) As String
+    On Error GoTo UseDefault
+
+    GetEquationReferenceFormat = doc.Variables(REFERENCE_FORMAT_VARIABLE).Value
+    If Len(GetEquationReferenceFormat) = 0 Then GoTo UseDefault
+    If InStr(GetEquationReferenceFormat, "{n}") = 0 Then GoTo UseDefault
+    Exit Function
+
+UseDefault:
+    GetEquationReferenceFormat = DEFAULT_REFERENCE_FORMAT
+End Function
+
+Private Sub SetDocumentVariable(ByVal doc As Document, ByVal variableName As String, ByVal variableValue As String)
+    On Error GoTo AddVariable
+
+    doc.Variables(variableName).Value = variableValue
+    Exit Sub
+
+AddVariable:
+    doc.Variables.Add Name:=variableName, Value:=variableValue
+End Sub
 
 Private Function GetEquationReferences() As Collection
     On Error GoTo RestoreHiddenBookmarks
