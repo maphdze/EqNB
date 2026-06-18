@@ -93,7 +93,16 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Set equationRange = doc.Range(equationStart, equationEnd)
 
     doc.OMaths.Add equationRange
-    Set equationRange = FindEquationRangeAt(doc, equationStart, equationEnd)
+    Dim equationMath As OMath
+    Set equationMath = FindEquationAt(doc, equationStart, equationEnd)
+    If Not equationMath Is Nothing Then
+        On Error Resume Next
+        equationMath.Type = wdOMathDisplay
+        On Error GoTo Failed
+        Set equationRange = equationMath.Range
+    Else
+        Set equationRange = doc.Range(equationStart, equationEnd)
+    End If
 
     Selection.TypeText vbTab & "("
 
@@ -123,22 +132,15 @@ Failed:
     MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
 
-Private Function FindEquationRangeAt(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As Range
+Private Function FindEquationAt(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As OMath
     Dim equation As OMath
-    Dim bestRange As Range
 
     For Each equation In doc.OMaths
         If equation.Range.Start <= rangeStart And equation.Range.End >= rangeEnd Then
-            Set bestRange = equation.Range
+            Set FindEquationAt = equation
             Exit For
         End If
     Next equation
-
-    If bestRange Is Nothing Then
-        Set bestRange = doc.Range(rangeStart, rangeEnd)
-    End If
-
-    Set FindEquationRangeAt = bestRange
 End Function
 
 Public Sub InsertEquationReference()
