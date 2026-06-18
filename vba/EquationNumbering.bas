@@ -84,12 +84,18 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Selection.TypeText vbTab
 
     Dim equationStart As Long
+    Dim equationEnd As Long
     equationStart = Selection.Start
-    Application.CommandBars.ExecuteMso "EquationInsertNew"
-    Selection.Collapse wdCollapseEnd
+    Selection.TypeText ChrW(&H25A1)
+    equationEnd = Selection.End
 
     Dim equationRange As Range
-    Set equationRange = doc.Range(equationStart, Selection.End)
+    Set equationRange = doc.Range(equationStart, equationEnd)
+
+    Dim equationMath As OMath
+    doc.OMaths.Add equationRange
+    Set equationMath = doc.OMaths(doc.OMaths.Count)
+    Set equationRange = equationMath.Range
 
     Selection.TypeText vbTab & "("
 
@@ -112,7 +118,7 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(captionStart, captionEnd)
 
     doc.Fields.Update
-    equationRange.Select
+    equationMath.Range.Select
     Exit Sub
 
 Failed:
