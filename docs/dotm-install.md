@@ -54,6 +54,8 @@ release\WordEquationNumbering.dotm
 - `InsertEquationReference`
 - `RefreshEquationFields`
 
+新版模板也会在 Word 顶部显示 `公式编号` 选项卡，可直接点击按钮完成常用操作。
+
 ## 签名
 
 这台电脑有 Office 自带的 SelfCert：

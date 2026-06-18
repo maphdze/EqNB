@@ -20,6 +20,30 @@ Public Sub InsertEquationLineChapterColon()
     InsertEquationLine "chapter", ":"
 End Sub
 
+Public Sub RibbonInsertPlain(ByVal control As IRibbonControl)
+    InsertEquationLinePlain
+End Sub
+
+Public Sub RibbonInsertChapterHyphen(ByVal control As IRibbonControl)
+    InsertEquationLineChapterHyphen
+End Sub
+
+Public Sub RibbonInsertChapterDot(ByVal control As IRibbonControl)
+    InsertEquationLineChapterDot
+End Sub
+
+Public Sub RibbonInsertReference(ByVal control As IRibbonControl)
+    InsertEquationReference
+End Sub
+
+Public Sub RibbonRefreshFields(ByVal control As IRibbonControl)
+    RefreshEquationFields
+End Sub
+
+Public Sub RibbonShowHelp(ByVal control As IRibbonControl)
+    ShowEquationNumberingHelp
+End Sub
+
 Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional ByVal separator As String = "-")
     On Error GoTo Failed
 

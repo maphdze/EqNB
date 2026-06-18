@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<customUI xmlns="http://schemas.microsoft.com/office/2009/07/customui">
+  <ribbon>
+    <tabs>
+      <tab id="EquationNumberingTab" label="公式编号">
+        <group id="EquationInsertGroup" label="插入">
+          <button id="InsertPlainEquation"
+                  label="普通编号"
+                  screentip="插入普通编号公式"
+                  supertip="在光标处插入一个居中的 Word 原生公式，并在右侧添加流水号。"
+                  imageMso="EquationInsertNew"
+                  size="large"
+                  onAction="RibbonInsertPlain" />
+          <button id="InsertChapterEquation"
+                  label="章节编号"
+                  screentip="插入章节编号公式"
+                  supertip="使用标题 1 章节号加公式流水号，例如 2-3。"
+                  imageMso="CaptionInsert"
+                  size="large"
+                  onAction="RibbonInsertChapterHyphen" />
+          <button id="InsertChapterDotEquation"
+                  label="章节.编号"
+                  screentip="插入句点分隔的章节编号公式"
+                  supertip="使用标题 1 章节号加公式流水号，例如 2.3。"
+                  imageMso="Numbering"
+                  onAction="RibbonInsertChapterDot" />
+        </group>
+        <group id="EquationReferenceGroup" label="引用">
+          <button id="InsertEquationReference"
+                  label="插入引用"
+                  screentip="插入公式交叉引用"
+                  supertip="从本模板插入的公式中选择一个，在正文插入可刷新的 REF 引用。"
+                  imageMso="CrossReferenceInsert"
+                  size="large"
+                  onAction="RibbonInsertReference" />
+          <button id="RefreshEquationFields"
+                  label="刷新"
+                  screentip="刷新编号和引用"
+                  supertip="刷新文档中的公式编号和正文引用域。"
+                  imageMso="Refresh"
+                  size="large"
+                  onAction="RibbonRefreshFields" />
+        </group>
+        <group id="EquationHelpGroup" label="帮助">
+          <button id="EquationNumberingHelp"
+                  label="说明"
+                  imageMso="Help"
+                  onAction="RibbonShowHelp" />
+        </group>
+      </tab>
+    </tabs>
+  </ribbon>
+</customUI>
