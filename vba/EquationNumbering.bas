@@ -68,73 +68,56 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
     Dim bookmarkName As String
     bookmarkName = CreateEquationBookmarkName()
 
-    Dim insertStart As Long
-    insertStart = Selection.Start
-    Selection.Range.InsertXML BuildEquationLineXml(mode, separator, bookmarkName, PointsToTwips(centerTab), PointsToTwips(rightTab))
+    Selection.TypeParagraph
+    Dim paragraphRange As Range
+    Set paragraphRange = Selection.Paragraphs(1).Range
+    paragraphRange.ParagraphFormat.LeftIndent = 0
+    paragraphRange.ParagraphFormat.RightIndent = 0
+    paragraphRange.ParagraphFormat.FirstLineIndent = 0
+    paragraphRange.ParagraphFormat.TabStops.ClearAll
+    paragraphRange.ParagraphFormat.TabStops.Add Position:=centerTab, Alignment:=wdAlignTabCenter
+    paragraphRange.ParagraphFormat.TabStops.Add Position:=rightTab, Alignment:=wdAlignTabRight
+    paragraphRange.ParagraphFormat.Alignment = wdAlignParagraphLeft
+    paragraphRange.ParagraphFormat.SpaceBefore = 6
+    paragraphRange.ParagraphFormat.SpaceAfter = 6
+
+    Selection.TypeText vbTab
+
+    Dim equationStart As Long
+    equationStart = Selection.Start
+    Application.CommandBars.ExecuteMso "EquationInsertNew"
+    Selection.Collapse wdCollapseEnd
+
+    Dim equationRange As Range
+    Set equationRange = doc.Range(equationStart, Selection.End)
+
+    Selection.TypeText vbTab & "("
+
+    Dim captionStart As Long
+    captionStart = Selection.Start
+
+    If mode = "chapter" Then
+        doc.Fields.Add Range:=Selection.Range, Type:=wdFieldStyleRef, Text:="1 \s", PreserveFormatting:=False
+        Selection.Collapse wdCollapseEnd
+        Selection.TypeText separator
+    End If
+
+    doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:=EQUATION_SEQ_NAME & " \* ARABIC", PreserveFormatting:=False
+    Selection.Collapse wdCollapseEnd
+
+    Dim captionEnd As Long
+    captionEnd = Selection.End
+    Selection.TypeText ")"
+
+    doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(captionStart, captionEnd)
 
     doc.Fields.Update
-
-    Dim insertedRange As Range
-    Set insertedRange = doc.Range(insertStart, doc.Content.End)
-    If insertedRange.OMaths.Count > 0 Then
-        insertedRange.OMaths(1).Range.Select
-    End If
+    equationRange.Select
     Exit Sub
 
 Failed:
     MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, "Equation Numbering"
 End Sub
-
-Private Function BuildEquationLineXml(ByVal mode As String, ByVal separator As String, ByVal bookmarkName As String, ByVal centerTab As Long, ByVal rightTab As Long) As String
-    Dim bookmarkId As Long
-    bookmarkId = CLng(Int(Rnd() * 2000000000))
-
-    Dim captionXml As String
-    captionXml = "<w:r><w:t>(</w:t></w:r>" & _
-        "<w:bookmarkStart w:id=""" & CStr(bookmarkId) & """ w:name=""" & EscapeXml(bookmarkName) & """/>"
-
-    If mode = "chapter" Then
-        captionXml = captionXml & FieldXml("STYLEREF 1 \s") & _
-            "<w:r><w:t>" & EscapeXml(separator) & "</w:t></w:r>"
-    End If
-
-    captionXml = captionXml & FieldXml("SEQ " & EQUATION_SEQ_NAME & " \* ARABIC") & _
-        "<w:bookmarkEnd w:id=""" & CStr(bookmarkId) & """/>" & _
-        "<w:r><w:t>)</w:t></w:r>"
-
-    BuildEquationLineXml = "<w:p xmlns:w=""http://schemas.openxmlformats.org/wordprocessingml/2006/main"" " & _
-        "xmlns:m=""http://schemas.openxmlformats.org/officeDocument/2006/math"">" & _
-        "<w:pPr><w:tabs>" & _
-        "<w:tab w:val=""center"" w:pos=""" & CStr(centerTab) & """/>" & _
-        "<w:tab w:val=""right"" w:pos=""" & CStr(rightTab) & """/>" & _
-        "</w:tabs><w:spacing w:before=""120"" w:after=""120""/>" & _
-        "<w:ind w:left=""0"" w:right=""0"" w:firstLine=""0""/></w:pPr>" & _
-        "<w:r><w:tab/></w:r>" & _
-        EmptyEquationXml() & _
-        "<w:r><w:tab/></w:r>" & _
-        captionXml & _
-        "</w:p>"
-End Function
-
-Private Function EmptyEquationXml() As String
-    EmptyEquationXml = "<m:oMath><m:r><w:rPr><w:rFonts w:ascii=""Cambria Math"" w:hAnsi=""Cambria Math""/></w:rPr><m:t>" & ChrW(&H25A1) & "</m:t></m:r></m:oMath>"
-End Function
-
-Private Function FieldXml(ByVal instruction As String) As String
-    FieldXml = "<w:fldSimple w:instr=""" & EscapeXml(instruction) & """><w:r><w:t>?</w:t></w:r></w:fldSimple>"
-End Function
-
-Private Function EscapeXml(ByVal value As String) As String
-    value = Replace(value, "&", "&amp;")
-    value = Replace(value, "<", "&lt;")
-    value = Replace(value, ">", "&gt;")
-    value = Replace(value, """", "&quot;")
-    EscapeXml = value
-End Function
-
-Private Function PointsToTwips(ByVal value As Single) As Long
-    PointsToTwips = CLng(value * 20)
-End Function
 
 Public Sub InsertEquationReference()
     On Error GoTo Failed
