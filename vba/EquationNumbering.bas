@@ -704,6 +704,7 @@ Private Function CleanEquationReferenceText(ByVal text As String, ByVal stripHas
     text = Replace(text, ChrW(20), "")
     text = Replace(text, ChrW(21), "")
     If stripHashWrapper Then text = StripHashEquationWrapper(text)
+    If stripHashWrapper Then text = StripLeadingHash(text)
     CleanEquationReferenceText = Trim$(text)
 End Function
 
@@ -726,6 +727,14 @@ Private Function StripHashEquationWrapper(ByVal text As String) As String
     Else
         StripHashEquationWrapper = Mid$(text, openPosition + 1)
     End If
+End Function
+
+Private Function StripLeadingHash(ByVal text As String) As String
+    text = Trim$(text)
+    Do While Left$(text, 1) = "#"
+        text = Trim$(Mid$(text, 2))
+    Loop
+    StripLeadingHash = text
 End Function
 
 Private Function CreateEquationBookmarkName() As String
