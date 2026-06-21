@@ -23,12 +23,14 @@
                   screentip="实验：插入公式内部章节编号"
                   supertip="按 Word 公式编辑器的 # 编号路线插入章节-公式编号；章节值来自 EqNB 章节起点。"
                   imageMso="CaptionInsert"
+                  size="large"
                   onAction="RibbonInsertHashChapterHyphen" />
           <button id="MarkChapterStart"
                   label="章节起点"
                   screentip="设置公式章节起点"
                   supertip="在当前位置插入隐藏的章节计数和公式计数重置域，供 #章节编号 使用。"
                   imageMso="Numbering"
+                  size="large"
                   onAction="RibbonMarkChapterStart" />
         </group>
         <group id="EquationReferenceGroup" label="引用">
@@ -44,12 +46,14 @@
                   screentip="设置公式引用格式"
                   supertip="为当前文档设置统一引用格式，例如 ({n})、式({n})、Eq.({n}) 或 [{n}]。"
                   imageMso="FieldCodes"
+                  size="large"
                   onAction="RibbonSetReferenceFormat" />
           <button id="SetEquationNumberFormat"
                   label="编号格式"
                   screentip="设置公式编号格式"
                   supertip="为当前文档设置公式编号方式、数字样式、定界符和章节分隔符。"
                   imageMso="BulletsAndNumbering"
+                  size="large"
                   onAction="RibbonSetNumberFormat" />
           <button id="RefreshEquationFields"
                   label="刷新"
