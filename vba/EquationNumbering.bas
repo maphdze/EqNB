@@ -381,11 +381,20 @@ Public Sub MarkEquationChapterStart()
     Set doc = ActiveDocument
 
     Selection.Collapse wdCollapseEnd
+    Dim markerStart As Long
+    markerStart = Selection.Start
+
     doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:="Chapter \h \* ARABIC", PreserveFormatting:=False
     Selection.Collapse wdCollapseEnd
     doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:=EQUATION_SEQ_NAME & " \r 0 \h", PreserveFormatting:=False
     Selection.Collapse wdCollapseEnd
     doc.Fields.Update
+
+    Dim markerEnd As Long
+    markerEnd = Selection.End
+    doc.Range(markerStart, markerEnd).Font.Hidden = True
+    Selection.SetRange markerEnd, markerEnd
+    Selection.Font.Hidden = False
 
     MsgBox "Chapter marker inserted. Chapter-style equation numbers will use this chapter value.", vbInformation, APP_TITLE
     Exit Sub
