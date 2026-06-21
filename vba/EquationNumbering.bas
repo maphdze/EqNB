@@ -234,6 +234,8 @@ Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optio
     doc.Fields.Update
 
     TryFinalizeHashEquation doc, hashRangeStart, hashRangeEnd
+    EnsureEquationBookmark doc, bookmarkName, captionStart, captionEnd
+    doc.Fields.Update
     doc.Range(placeholderStart, placeholderEnd).Select
     SendKeys "{LEFT}{RIGHT}{RIGHT}", True
     DoEvents
@@ -259,12 +261,48 @@ Private Function TryFinalizeHashEquation(ByVal doc As Document, ByVal rangeStart
     SendKeys "{ENTER}", True
     DoEvents
     WaitSeconds 0.2
+    DeleteEmptyParagraphAtSelection
+    DoEvents
     TryFinalizeHashEquation = True
     Exit Function
 
 GiveUp:
     TryFinalizeHashEquation = False
 End Function
+
+Private Sub DeleteEmptyParagraphAtSelection()
+    On Error GoTo GiveUp
+
+    Dim paragraphRange As Range
+    Set paragraphRange = Selection.Paragraphs(1).Range
+
+    Dim paragraphText As String
+    paragraphText = paragraphRange.Text
+    paragraphText = Replace(paragraphText, ChrW(13), "")
+    paragraphText = Replace(paragraphText, ChrW(7), "")
+    paragraphText = Trim$(paragraphText)
+
+    If Len(paragraphText) = 0 Then
+        paragraphRange.Delete
+    End If
+
+GiveUp:
+End Sub
+
+Private Sub EnsureEquationBookmark(ByVal doc As Document, ByVal bookmarkName As String, ByVal rangeStart As Long, ByVal rangeEnd As Long)
+    On Error GoTo GiveUp
+
+    If doc.Bookmarks.Exists(bookmarkName) Then
+        If Len(GetBookmarkDisplayText(doc.Bookmarks(bookmarkName))) > 0 Then Exit Sub
+        doc.Bookmarks(bookmarkName).Delete
+    End If
+
+    If rangeStart < rangeEnd Then
+        doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(rangeStart, rangeEnd)
+    End If
+
+GiveUp:
+End Sub
 
 Private Sub WaitSeconds(ByVal seconds As Double)
     Dim finishTime As Single
@@ -443,7 +481,7 @@ Private Function GetEquationReferences() As Collection
         If Left$(bookmark.Name, 4) = "_Eqn" Then
             Dim item(2) As String
             item(0) = bookmark.Name
-            item(1) = Trim$(Replace(bookmark.Range.Text, ChrW(13), ""))
+            item(1) = GetBookmarkDisplayText(bookmark)
             item(2) = CStr(bookmark.Range.Start)
             If Len(item(1)) = 0 Then item(1) = bookmark.Name
             AddReferenceInDocumentOrder refs, item
@@ -472,6 +510,45 @@ Private Sub AddReferenceInDocumentOrder(ByRef refs As Collection, ByRef item() A
 
     refs.Add item
 End Sub
+
+Private Function GetBookmarkDisplayText(ByVal bookmark As Bookmark) As String
+    On Error GoTo UseRangeText
+
+    Dim text As String
+    text = TrimEquationReferenceText(bookmark.Range.Text)
+
+    If bookmark.Range.Fields.Count > 1 Then
+        Dim fieldText As String
+        Dim fieldIndex As Long
+        fieldText = text
+
+        For fieldIndex = 1 To bookmark.Range.Fields.Count
+            fieldText = Replace(fieldText, TrimEquationReferenceText(bookmark.Range.Fields(fieldIndex).Code.Text), "")
+            fieldText = Replace(fieldText, ChrW(19), "")
+            fieldText = Replace(fieldText, ChrW(20), "")
+            fieldText = Replace(fieldText, ChrW(21), "")
+        Next fieldIndex
+
+        If Len(TrimEquationReferenceText(fieldText)) > 0 Then
+            text = TrimEquationReferenceText(fieldText)
+        End If
+    End If
+
+    GetBookmarkDisplayText = text
+    Exit Function
+
+UseRangeText:
+    GetBookmarkDisplayText = TrimEquationReferenceText(bookmark.Range.Text)
+End Function
+
+Private Function TrimEquationReferenceText(ByVal text As String) As String
+    text = Replace(text, ChrW(13), "")
+    text = Replace(text, ChrW(7), "")
+    text = Replace(text, ChrW(19), "")
+    text = Replace(text, ChrW(20), "")
+    text = Replace(text, ChrW(21), "")
+    TrimEquationReferenceText = Trim$(text)
+End Function
 
 Private Function CreateEquationBookmarkName() As String
     Randomize
