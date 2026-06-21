@@ -124,8 +124,6 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
 
     Dim bookmarkName As String
     bookmarkName = CreateEquationBookmarkName()
-    Dim referenceBookmarkName As String
-    referenceBookmarkName = CreateEquationReferenceBookmarkName(bookmarkName)
 
     Selection.TypeParagraph
     Dim paragraphRange As Range
@@ -190,6 +188,8 @@ Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optio
 
     Dim bookmarkName As String
     bookmarkName = CreateEquationBookmarkName()
+    Dim referenceBookmarkName As String
+    referenceBookmarkName = CreateEquationReferenceBookmarkName(bookmarkName)
 
     Selection.TypeParagraph
 
