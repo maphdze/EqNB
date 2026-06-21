@@ -233,9 +233,8 @@ Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optio
 
     doc.Fields.Update
 
-    If Not TryFinalizeHashEquation(doc, hashRangeStart, hashRangeEnd) Then
-        doc.Range(placeholderStart, placeholderEnd).Select
-    End If
+    TryFinalizeHashEquation doc, hashRangeStart, hashRangeEnd
+    doc.Range(placeholderStart, placeholderEnd).Select
     Exit Sub
 
 Failed:
@@ -257,9 +256,6 @@ Private Function TryFinalizeHashEquation(ByVal doc As Document, ByVal rangeStart
     SendKeys "{ENTER}", True
     DoEvents
     WaitSeconds 0.2
-    SendKeys "{LEFT}{RIGHT}{RIGHT}", True
-    DoEvents
-    WaitSeconds 0.1
     TryFinalizeHashEquation = True
     Exit Function
 
