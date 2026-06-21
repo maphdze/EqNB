@@ -235,6 +235,9 @@ Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optio
 
     TryFinalizeHashEquation doc, hashRangeStart, hashRangeEnd
     doc.Range(placeholderStart, placeholderEnd).Select
+    SendKeys "{LEFT}{RIGHT}{RIGHT}", True
+    DoEvents
+    WaitSeconds 0.1
     Exit Sub
 
 Failed:
