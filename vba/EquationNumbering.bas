@@ -255,12 +255,22 @@ Private Function TryFinalizeHashEquation(ByVal doc As Document, ByVal rangeStart
     DoEvents
     SendKeys "{ENTER}", True
     DoEvents
+    WaitSeconds 0.2
     TryFinalizeHashEquation = True
     Exit Function
 
 GiveUp:
     TryFinalizeHashEquation = False
 End Function
+
+Private Sub WaitSeconds(ByVal seconds As Double)
+    Dim finishTime As Single
+    finishTime = Timer + CSng(seconds)
+
+    Do While Timer < finishTime
+        DoEvents
+    Loop
+End Sub
 
 Public Sub MarkEquationChapterStart()
     On Error GoTo Failed
