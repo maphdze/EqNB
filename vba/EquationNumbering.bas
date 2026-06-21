@@ -334,6 +334,8 @@ Private Sub EnsureEquationReferenceBookmark(ByVal doc As Document, ByVal display
     insertionRange.Font.Hidden = True
 
     doc.Bookmarks.Add Name:=referenceBookmarkName, Range:=doc.Range(insertionRange.Start, insertionRange.Start + Len(numberText))
+    insertionRange.Collapse wdCollapseEnd
+    insertionRange.Font.Hidden = False
 
 GiveUp:
 End Sub
@@ -425,11 +427,18 @@ Public Sub InsertEquationReference()
     Dim markerPosition As Long
     markerPosition = InStr(formatText, "{n}")
 
+    Dim referenceStart As Long
+    referenceStart = Selection.Start
+
     Selection.TypeText Left$(formatText, markerPosition - 1)
-    ActiveDocument.Fields.Add Range:=Selection.Range, Type:=wdFieldRef, Text:=refs(index)(3) & " \h", PreserveFormatting:=False
+    Dim referenceField As Field
+    Set referenceField = ActiveDocument.Fields.Add(Range:=Selection.Range, Type:=wdFieldRef, Text:=refs(index)(3) & " \h \* CHARFORMAT", PreserveFormatting:=False)
     Selection.Collapse wdCollapseEnd
     Selection.TypeText Mid$(formatText, markerPosition + 3)
     ActiveDocument.Fields.Update
+    ActiveDocument.Range(referenceStart, Selection.End).Font.Hidden = False
+    referenceField.Update
+    referenceField.Result.Font.Hidden = False
     Exit Sub
 
 Failed:
