@@ -355,6 +355,7 @@ Private Sub ApplyEquationNumberFont(ByVal targetRange As Range)
     targetRange.Font.NameAscii = EQUATION_NUMBER_FONT
     targetRange.Font.NameOther = EQUATION_NUMBER_FONT
     targetRange.Font.NameBi = EQUATION_NUMBER_FONT
+    targetRange.Font.Italic = False
 
 GiveUp:
 End Sub
