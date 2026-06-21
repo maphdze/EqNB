@@ -16,6 +16,7 @@ Private Const DEFAULT_SEPARATOR As String = "-"
 Private Const APP_TITLE As String = "EqNB"
 Private Const EQUATION_BOOKMARK_PREFIX As String = "_Eqn"
 Private Const EQUATION_REF_BOOKMARK_PREFIX As String = "_EqnRef"
+Private Const EQUATION_NUMBER_FONT As String = "Times New Roman"
 
 Public Sub InsertEquationLinePlain()
     InsertEquationLine "plain", "-"
@@ -265,6 +266,7 @@ Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optio
     TryFinalizeHashEquation doc, hashRangeStart, hashRangeEnd
     EnsureEquationBookmark doc, bookmarkName, captionStart, captionEnd
     doc.Fields.Update
+    ApplyEquationNumberFontToBookmark doc, bookmarkName
     EnsureEquationReferenceBookmark doc, bookmarkName, referenceBookmarkName
     doc.Range(placeholderStart, placeholderEnd).Select
     SendKeys "{LEFT}{RIGHT}{RIGHT}", True
@@ -330,7 +332,29 @@ Private Sub EnsureEquationBookmark(ByVal doc As Document, ByVal bookmarkName As 
 
     If rangeStart < rangeEnd Then
         doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(rangeStart, rangeEnd)
+        ApplyEquationNumberFontToBookmark doc, bookmarkName
     End If
+
+GiveUp:
+End Sub
+
+Private Sub ApplyEquationNumberFontToBookmark(ByVal doc As Document, ByVal bookmarkName As String)
+    On Error GoTo GiveUp
+
+    If doc.Bookmarks.Exists(bookmarkName) Then
+        ApplyEquationNumberFont doc.Bookmarks(bookmarkName).Range
+    End If
+
+GiveUp:
+End Sub
+
+Private Sub ApplyEquationNumberFont(ByVal targetRange As Range)
+    On Error GoTo GiveUp
+
+    targetRange.Font.Name = EQUATION_NUMBER_FONT
+    targetRange.Font.NameAscii = EQUATION_NUMBER_FONT
+    targetRange.Font.NameOther = EQUATION_NUMBER_FONT
+    targetRange.Font.NameBi = EQUATION_NUMBER_FONT
 
 GiveUp:
 End Sub
@@ -357,6 +381,7 @@ Private Sub EnsureEquationReferenceBookmark(ByVal doc As Document, ByVal display
     insertionRange.Collapse wdCollapseEnd
     insertionRange.InsertAfter numberText
     insertionRange.Font.Hidden = True
+    ApplyEquationNumberFont insertionRange
 
     doc.Bookmarks.Add Name:=referenceBookmarkName, Range:=doc.Range(insertionRange.Start, insertionRange.Start + Len(numberText))
     insertionRange.Collapse wdCollapseEnd
@@ -471,8 +496,10 @@ Public Sub InsertEquationReference()
     Selection.TypeText Mid$(formatText, markerPosition + 3)
     ActiveDocument.Fields.Update
     ActiveDocument.Range(referenceStart, Selection.End).Font.Hidden = False
+    ApplyEquationNumberFont ActiveDocument.Range(referenceStart, Selection.End)
     referenceField.Update
     referenceField.Result.Font.Hidden = False
+    ApplyEquationNumberFont referenceField.Result
     Exit Sub
 
 Failed:
