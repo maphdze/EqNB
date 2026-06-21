@@ -5,6 +5,8 @@ Private Const EQUATION_SEQ_NAME As String = "Equation"
 Private Const REFERENCE_FORMAT_VARIABLE As String = "EquationReferenceFormat"
 Private Const DEFAULT_REFERENCE_FORMAT As String = "({n})"
 Private Const APP_TITLE As String = "EqNB"
+Private Const EQUATION_BOOKMARK_PREFIX As String = "_Eqn"
+Private Const EQUATION_REF_BOOKMARK_PREFIX As String = "_EqnRef"
 
 Public Sub InsertEquationLinePlain()
     InsertEquationLine "plain", "-"
@@ -122,6 +124,8 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
 
     Dim bookmarkName As String
     bookmarkName = CreateEquationBookmarkName()
+    Dim referenceBookmarkName As String
+    referenceBookmarkName = CreateEquationReferenceBookmarkName(bookmarkName)
 
     Selection.TypeParagraph
     Dim paragraphRange As Range
@@ -236,6 +240,7 @@ Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optio
     TryFinalizeHashEquation doc, hashRangeStart, hashRangeEnd
     EnsureEquationBookmark doc, bookmarkName, captionStart, captionEnd
     doc.Fields.Update
+    EnsureEquationReferenceBookmark doc, bookmarkName, referenceBookmarkName
     doc.Range(placeholderStart, placeholderEnd).Select
     SendKeys "{LEFT}{RIGHT}{RIGHT}", True
     DoEvents
@@ -301,6 +306,34 @@ Private Sub EnsureEquationBookmark(ByVal doc As Document, ByVal bookmarkName As 
     If rangeStart < rangeEnd Then
         doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(rangeStart, rangeEnd)
     End If
+
+GiveUp:
+End Sub
+
+Private Sub EnsureEquationReferenceBookmark(ByVal doc As Document, ByVal displayBookmarkName As String, ByVal referenceBookmarkName As String)
+    On Error GoTo GiveUp
+
+    If Not doc.Bookmarks.Exists(displayBookmarkName) Then Exit Sub
+
+    Dim numberText As String
+    numberText = GetBookmarkDisplayText(doc.Bookmarks(displayBookmarkName))
+    If Len(numberText) = 0 Then Exit Sub
+
+    If doc.Bookmarks.Exists(referenceBookmarkName) Then
+        Dim oldReferenceRange As Range
+        Set oldReferenceRange = doc.Bookmarks(referenceBookmarkName).Range
+        doc.Bookmarks(referenceBookmarkName).Delete
+        oldReferenceRange.Delete
+    End If
+
+    Dim insertionRange As Range
+    Set insertionRange = doc.Bookmarks(displayBookmarkName).Range.Paragraphs(1).Range
+    insertionRange.End = insertionRange.End - 1
+    insertionRange.Collapse wdCollapseEnd
+    insertionRange.InsertAfter numberText
+    insertionRange.Font.Hidden = True
+
+    doc.Bookmarks.Add Name:=referenceBookmarkName, Range:=doc.Range(insertionRange.Start, insertionRange.Start + Len(numberText))
 
 GiveUp:
 End Sub
@@ -393,7 +426,7 @@ Public Sub InsertEquationReference()
     markerPosition = InStr(formatText, "{n}")
 
     Selection.TypeText Left$(formatText, markerPosition - 1)
-    ActiveDocument.Fields.Add Range:=Selection.Range, Type:=wdFieldRef, Text:=refs(index)(0) & " \h", PreserveFormatting:=False
+    ActiveDocument.Fields.Add Range:=Selection.Range, Type:=wdFieldRef, Text:=refs(index)(3) & " \h", PreserveFormatting:=False
     Selection.Collapse wdCollapseEnd
     Selection.TypeText Mid$(formatText, markerPosition + 3)
     ActiveDocument.Fields.Update
@@ -425,6 +458,7 @@ End Sub
 
 Public Sub RefreshEquationFields()
     On Error GoTo Failed
+    RefreshEquationReferenceBookmarks ActiveDocument
     ActiveDocument.Fields.Update
     MsgBox "Equation numbers and references were refreshed.", vbInformation, APP_TITLE
     Exit Sub
@@ -478,14 +512,15 @@ Private Function GetEquationReferences() As Collection
     showHiddenBefore = ActiveDocument.Bookmarks.ShowHidden
     ActiveDocument.Bookmarks.ShowHidden = True
 
-    NormalizeEquationBookmarks ActiveDocument
+    RefreshEquationReferenceBookmarks ActiveDocument
 
     For Each bookmark In ActiveDocument.Bookmarks
-        If Left$(bookmark.Name, 4) = "_Eqn" Then
-            Dim item(2) As String
+        If IsEquationDisplayBookmark(bookmark.Name) Then
+            Dim item(3) As String
             item(0) = bookmark.Name
             item(1) = GetBookmarkDisplayText(bookmark)
             item(2) = CStr(bookmark.Range.Start)
+            item(3) = GetReferenceBookmarkNameForList(ActiveDocument, bookmark.Name)
             If Len(item(1)) = 0 Then item(1) = bookmark.Name
             AddReferenceInDocumentOrder refs, item
         End If
@@ -522,7 +557,7 @@ Private Sub NormalizeEquationBookmarks(ByVal doc As Document)
     Dim name As Variant
 
     For Each bookmark In doc.Bookmarks
-        If Left$(bookmark.Name, 4) = "_Eqn" Then
+        If IsEquationDisplayBookmark(bookmark.Name) Then
             bookmarkNames.Add bookmark.Name
         End If
     Next bookmark
@@ -533,6 +568,56 @@ Private Sub NormalizeEquationBookmarks(ByVal doc As Document)
 
 GiveUp:
 End Sub
+
+Private Sub RefreshEquationReferenceBookmarks(ByVal doc As Document)
+    On Error GoTo GiveUp
+
+    Dim showHiddenBefore As Boolean
+    showHiddenBefore = doc.Bookmarks.ShowHidden
+    doc.Bookmarks.ShowHidden = True
+
+    NormalizeEquationBookmarks doc
+
+    Dim bookmarkNames As New Collection
+    Dim bookmark As Bookmark
+    Dim name As Variant
+
+    For Each bookmark In doc.Bookmarks
+        If IsEquationDisplayBookmark(bookmark.Name) Then
+            bookmarkNames.Add bookmark.Name
+        End If
+    Next bookmark
+
+    For Each name In bookmarkNames
+        EnsureEquationReferenceBookmark doc, CStr(name), CreateEquationReferenceBookmarkName(CStr(name))
+    Next name
+
+    doc.Bookmarks.ShowHidden = showHiddenBefore
+    Exit Sub
+
+GiveUp:
+    doc.Bookmarks.ShowHidden = showHiddenBefore
+End Sub
+
+Private Function GetReferenceBookmarkNameForList(ByVal doc As Document, ByVal displayBookmarkName As String) As String
+    Dim referenceBookmarkName As String
+    referenceBookmarkName = CreateEquationReferenceBookmarkName(displayBookmarkName)
+
+    If doc.Bookmarks.Exists(referenceBookmarkName) Then
+        GetReferenceBookmarkNameForList = referenceBookmarkName
+    Else
+        GetReferenceBookmarkNameForList = displayBookmarkName
+    End If
+End Function
+
+Private Function IsEquationDisplayBookmark(ByVal bookmarkName As String) As Boolean
+    If Left$(bookmarkName, Len(EQUATION_BOOKMARK_PREFIX)) <> EQUATION_BOOKMARK_PREFIX Then
+        IsEquationDisplayBookmark = False
+        Exit Function
+    End If
+
+    IsEquationDisplayBookmark = Left$(bookmarkName, Len(EQUATION_REF_BOOKMARK_PREFIX)) <> EQUATION_REF_BOOKMARK_PREFIX
+End Function
 
 Private Sub NormalizeHashEquationBookmark(ByVal doc As Document, ByVal bookmarkName As String)
     On Error GoTo GiveUp
@@ -636,7 +721,15 @@ End Function
 
 Private Function CreateEquationBookmarkName() As String
     Randomize
-    CreateEquationBookmarkName = "_Eqn" & Format$(Now, "yymmddhhnnss") & CStr(Int(Rnd() * 1000))
+    CreateEquationBookmarkName = EQUATION_BOOKMARK_PREFIX & Format$(Now, "yymmddhhnnss") & CStr(Int(Rnd() * 1000))
+End Function
+
+Private Function CreateEquationReferenceBookmarkName(ByVal displayBookmarkName As String) As String
+    If Left$(displayBookmarkName, Len(EQUATION_BOOKMARK_PREFIX)) = EQUATION_BOOKMARK_PREFIX Then
+        CreateEquationReferenceBookmarkName = EQUATION_REF_BOOKMARK_PREFIX & Mid$(displayBookmarkName, Len(EQUATION_BOOKMARK_PREFIX) + 1)
+    Else
+        CreateEquationReferenceBookmarkName = EQUATION_REF_BOOKMARK_PREFIX & displayBookmarkName
+    End If
 End Function
 
 Private Function HasNumberedHeadingOne(ByVal doc As Document) As Boolean
