@@ -573,8 +573,8 @@ Private Sub RefreshEquationReferenceBookmarks(ByVal doc As Document)
     On Error GoTo GiveUp
 
     Dim showHiddenBefore As Boolean
-    showHiddenBefore = doc.Bookmarks.ShowHidden
-    doc.Bookmarks.ShowHidden = True
+    showHiddenBefore = ActiveDocument.Bookmarks.ShowHidden
+    ActiveDocument.Bookmarks.ShowHidden = True
 
     NormalizeEquationBookmarks doc
 
@@ -592,11 +592,11 @@ Private Sub RefreshEquationReferenceBookmarks(ByVal doc As Document)
         EnsureEquationReferenceBookmark doc, CStr(name), CreateEquationReferenceBookmarkName(CStr(name))
     Next name
 
-    doc.Bookmarks.ShowHidden = showHiddenBefore
+    ActiveDocument.Bookmarks.ShowHidden = showHiddenBefore
     Exit Sub
 
 GiveUp:
-    doc.Bookmarks.ShowHidden = showHiddenBefore
+    ActiveDocument.Bookmarks.ShowHidden = showHiddenBefore
 End Sub
 
 Private Function GetReferenceBookmarkNameForList(ByVal doc As Document, ByVal displayBookmarkName As String) As String
