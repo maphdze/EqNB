@@ -10,6 +10,10 @@ Public Sub InsertEquationLinePlain()
     InsertEquationLine "plain", "-"
 End Sub
 
+Public Sub InsertHashEquationLinePlain()
+    InsertHashEquationLine "plain", "-"
+End Sub
+
 Public Sub InsertInlineEquation()
     On Error GoTo Failed
 
@@ -38,6 +42,10 @@ Public Sub InsertEquationLineChapterHyphen()
     InsertEquationLine "chapter", "-"
 End Sub
 
+Public Sub InsertHashEquationLineChapterHyphen()
+    InsertHashEquationLine "chapter", "-"
+End Sub
+
 Public Sub InsertEquationLineChapterDot()
     InsertEquationLine "chapter", "."
 End Sub
@@ -50,6 +58,10 @@ Public Sub RibbonInsertPlain(ByVal control As IRibbonControl)
     InsertEquationLinePlain
 End Sub
 
+Public Sub RibbonInsertHashPlain(ByVal control As IRibbonControl)
+    InsertHashEquationLinePlain
+End Sub
+
 Public Sub RibbonInsertInlineEquation(ByVal control As IRibbonControl)
     InsertInlineEquation
 End Sub
@@ -58,8 +70,16 @@ Public Sub RibbonInsertChapterHyphen(ByVal control As IRibbonControl)
     InsertEquationLineChapterHyphen
 End Sub
 
+Public Sub RibbonInsertHashChapterHyphen(ByVal control As IRibbonControl)
+    InsertHashEquationLineChapterHyphen
+End Sub
+
 Public Sub RibbonInsertChapterDot(ByVal control As IRibbonControl)
     InsertEquationLineChapterDot
+End Sub
+
+Public Sub RibbonMarkChapterStart(ByVal control As IRibbonControl)
+    MarkEquationChapterStart
 End Sub
 
 Public Sub RibbonInsertReference(ByVal control As IRibbonControl)
@@ -156,6 +176,90 @@ Public Sub InsertEquationLine(Optional ByVal mode As String = "plain", Optional 
 
 Failed:
     MsgBox "Failed to insert equation line: " & Err.Description, vbCritical, APP_TITLE
+End Sub
+
+Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optional ByVal separator As String = "-")
+    On Error GoTo Failed
+
+    Dim doc As Document
+    Set doc = ActiveDocument
+
+    Dim bookmarkName As String
+    bookmarkName = CreateEquationBookmarkName()
+
+    Selection.TypeParagraph
+
+    Dim paragraphRange As Range
+    Set paragraphRange = Selection.Paragraphs(1).Range
+    paragraphRange.ParagraphFormat.Alignment = wdAlignParagraphCenter
+    paragraphRange.ParagraphFormat.LeftIndent = 0
+    paragraphRange.ParagraphFormat.RightIndent = 0
+    paragraphRange.ParagraphFormat.FirstLineIndent = 0
+    paragraphRange.ParagraphFormat.SpaceBefore = 6
+    paragraphRange.ParagraphFormat.SpaceAfter = 6
+
+    Dim hashRangeStart As Long
+    Dim placeholderStart As Long
+    Dim placeholderEnd As Long
+    Dim captionStart As Long
+    Dim captionEnd As Long
+
+    hashRangeStart = Selection.Start
+    placeholderStart = Selection.Start
+    Selection.TypeText ChrW(&H25A1)
+    placeholderEnd = Selection.End
+    Selection.TypeText "#("
+    captionStart = Selection.Start
+
+    If mode = "chapter" Then
+        doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:="Chapter \c \* ARABIC", PreserveFormatting:=False
+        Selection.Collapse wdCollapseEnd
+        Selection.TypeText separator
+    End If
+
+    doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:=EQUATION_SEQ_NAME & " \* ARABIC", PreserveFormatting:=False
+    Selection.Collapse wdCollapseEnd
+    captionEnd = Selection.End
+    Selection.TypeText ")"
+
+    doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(captionStart, captionEnd)
+
+    Dim hashRangeEnd As Long
+    hashRangeEnd = Selection.End
+
+    Dim equationRange As Range
+    Set equationRange = doc.Range(hashRangeStart, hashRangeEnd)
+    doc.OMaths.Add equationRange
+
+    doc.Fields.Update
+
+    ' Keep the editable placeholder selected. In Word versions that honor the
+    ' equation # parser, pressing Enter inside the equation finishes the layout.
+    doc.Range(placeholderStart, placeholderEnd).Select
+    Exit Sub
+
+Failed:
+    MsgBox "Failed to insert hash equation line: " & Err.Description, vbCritical, APP_TITLE
+End Sub
+
+Public Sub MarkEquationChapterStart()
+    On Error GoTo Failed
+
+    Dim doc As Document
+    Set doc = ActiveDocument
+
+    Selection.Collapse wdCollapseEnd
+    doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:="Chapter \h \* ARABIC", PreserveFormatting:=False
+    Selection.Collapse wdCollapseEnd
+    doc.Fields.Add Range:=Selection.Range, Type:=wdFieldSequence, Text:=EQUATION_SEQ_NAME & " \r 0 \h", PreserveFormatting:=False
+    Selection.Collapse wdCollapseEnd
+    doc.Fields.Update
+
+    MsgBox "Chapter marker inserted. Chapter-style equation numbers will use this chapter value.", vbInformation, APP_TITLE
+    Exit Sub
+
+Failed:
+    MsgBox "Failed to mark chapter start: " & Err.Description, vbCritical, APP_TITLE
 End Sub
 
 Private Function FindEquationRangeAt(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As Range
@@ -262,7 +366,8 @@ Public Sub ShowEquationNumberingHelp()
         "1. Insert numbered equations." & vbCrLf & _
         "2. Insert inline equations without numbering." & vbCrLf & _
         "3. Set one reference format for the document." & vbCrLf & _
-        "4. Insert cross-references and refresh fields.", vbInformation, APP_TITLE
+        "4. Insert cross-references and refresh fields." & vbCrLf & _
+        "5. Experimental # equations follow Word's equation-internal numbering method.", vbInformation, APP_TITLE
 End Sub
 
 Public Function EquationNumberingSmokeTest() As String

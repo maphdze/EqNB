@@ -11,6 +11,13 @@
                   imageMso="EquationInsertNew"
                   size="large"
                   onAction="RibbonInsertPlain" />
+          <button id="InsertHashPlainEquation"
+                  label="#编号公式"
+                  screentip="实验：插入公式内部 # 编号"
+                  supertip="按 Word 公式编辑器的 # 编号路线插入公式、SEQ 域和书签；若 Word 未自动右对齐，请在公式内按 Enter。"
+                  imageMso="EquationInsertNew"
+                  size="large"
+                  onAction="RibbonInsertHashPlain" />
           <button id="InsertInlineEquation"
                   label="行内公式"
                   screentip="插入行内公式"
@@ -25,12 +32,24 @@
                   imageMso="CaptionInsert"
                   size="large"
                   onAction="RibbonInsertChapterHyphen" />
+          <button id="InsertHashChapterEquation"
+                  label="#章节编号"
+                  screentip="实验：插入公式内部章节编号"
+                  supertip="按 Word 公式编辑器的 # 编号路线插入章节-公式编号；章节值来自 EqNB 章节起点。"
+                  imageMso="CaptionInsert"
+                  onAction="RibbonInsertHashChapterHyphen" />
           <button id="InsertChapterDotEquation"
                   label="章节.编号"
                   screentip="插入句点分隔的章节编号公式"
                   supertip="使用标题 1 章节号加公式流水号，例如 2.3。"
                   imageMso="Numbering"
                   onAction="RibbonInsertChapterDot" />
+          <button id="MarkChapterStart"
+                  label="章节起点"
+                  screentip="设置公式章节起点"
+                  supertip="在当前位置插入隐藏的章节计数和公式计数重置域，供 #章节编号 使用。"
+                  imageMso="Numbering"
+                  onAction="RibbonMarkChapterStart" />
         </group>
         <group id="EquationReferenceGroup" label="引用">
           <button id="InsertEquationReference"
