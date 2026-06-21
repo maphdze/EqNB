@@ -293,6 +293,7 @@ Private Sub EnsureEquationBookmark(ByVal doc As Document, ByVal bookmarkName As 
     On Error GoTo GiveUp
 
     If doc.Bookmarks.Exists(bookmarkName) Then
+        NormalizeHashEquationBookmark doc, bookmarkName
         If Len(GetBookmarkDisplayText(doc.Bookmarks(bookmarkName))) > 0 Then Exit Sub
         doc.Bookmarks(bookmarkName).Delete
     End If
@@ -477,6 +478,8 @@ Private Function GetEquationReferences() As Collection
     showHiddenBefore = ActiveDocument.Bookmarks.ShowHidden
     ActiveDocument.Bookmarks.ShowHidden = True
 
+    NormalizeEquationBookmarks ActiveDocument
+
     For Each bookmark In ActiveDocument.Bookmarks
         If Left$(bookmark.Name, 4) = "_Eqn" Then
             Dim item(2) As String
@@ -511,6 +514,61 @@ Private Sub AddReferenceInDocumentOrder(ByRef refs As Collection, ByRef item() A
     refs.Add item
 End Sub
 
+Private Sub NormalizeEquationBookmarks(ByVal doc As Document)
+    On Error GoTo GiveUp
+
+    Dim bookmarkNames As New Collection
+    Dim bookmark As Bookmark
+    Dim name As Variant
+
+    For Each bookmark In doc.Bookmarks
+        If Left$(bookmark.Name, 4) = "_Eqn" Then
+            bookmarkNames.Add bookmark.Name
+        End If
+    Next bookmark
+
+    For Each name In bookmarkNames
+        NormalizeHashEquationBookmark doc, CStr(name)
+    Next name
+
+GiveUp:
+End Sub
+
+Private Sub NormalizeHashEquationBookmark(ByVal doc As Document, ByVal bookmarkName As String)
+    On Error GoTo GiveUp
+
+    If Not doc.Bookmarks.Exists(bookmarkName) Then Exit Sub
+
+    Dim bookmarkRange As Range
+    Set bookmarkRange = doc.Bookmarks(bookmarkName).Range
+
+    Dim text As String
+    text = CleanEquationReferenceText(bookmarkRange.Text, False)
+
+    Dim hashPosition As Long
+    Dim openPosition As Long
+    Dim closePosition As Long
+
+    hashPosition = InStrRev(text, "#(")
+    If hashPosition = 0 Then Exit Sub
+
+    openPosition = hashPosition + 1
+    closePosition = InStr(openPosition + 1, text, ")")
+    If closePosition <= openPosition Then Exit Sub
+
+    Dim newStart As Long
+    Dim newEnd As Long
+    newStart = bookmarkRange.Start + openPosition
+    newEnd = bookmarkRange.Start + closePosition - 1
+
+    If newStart >= newEnd Then Exit Sub
+
+    doc.Bookmarks(bookmarkName).Delete
+    doc.Bookmarks.Add Name:=bookmarkName, Range:=doc.Range(newStart, newEnd)
+
+GiveUp:
+End Sub
+
 Private Function GetBookmarkDisplayText(ByVal bookmark As Bookmark) As String
     On Error GoTo UseRangeText
 
@@ -542,12 +600,38 @@ UseRangeText:
 End Function
 
 Private Function TrimEquationReferenceText(ByVal text As String) As String
+    TrimEquationReferenceText = CleanEquationReferenceText(text, True)
+End Function
+
+Private Function CleanEquationReferenceText(ByVal text As String, ByVal stripHashWrapper As Boolean) As String
     text = Replace(text, ChrW(13), "")
     text = Replace(text, ChrW(7), "")
     text = Replace(text, ChrW(19), "")
     text = Replace(text, ChrW(20), "")
     text = Replace(text, ChrW(21), "")
-    TrimEquationReferenceText = Trim$(text)
+    If stripHashWrapper Then text = StripHashEquationWrapper(text)
+    CleanEquationReferenceText = Trim$(text)
+End Function
+
+Private Function StripHashEquationWrapper(ByVal text As String) As String
+    Dim hashPosition As Long
+    Dim openPosition As Long
+    Dim closePosition As Long
+
+    hashPosition = InStrRev(text, "#(")
+    If hashPosition = 0 Then
+        StripHashEquationWrapper = text
+        Exit Function
+    End If
+
+    openPosition = hashPosition + 1
+    closePosition = InStr(openPosition + 1, text, ")")
+
+    If closePosition > openPosition Then
+        StripHashEquationWrapper = Mid$(text, openPosition + 1, closePosition - openPosition - 1)
+    Else
+        StripHashEquationWrapper = Mid$(text, openPosition + 1)
+    End If
 End Function
 
 Private Function CreateEquationBookmarkName() As String
