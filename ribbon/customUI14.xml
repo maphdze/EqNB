@@ -4,13 +4,6 @@
     <tabs>
       <tab id="EquationNumberingTab" label="EqNB">
         <group id="EquationInsertGroup" label="插入">
-          <button id="InsertPlainEquation"
-                  label="编号公式"
-                  screentip="插入编号行间公式"
-                  supertip="插入一个居中的 Word 原生公式，并在右侧添加顺序编号。"
-                  imageMso="EquationInsertNew"
-                  size="large"
-                  onAction="RibbonInsertPlain" />
           <button id="InsertHashPlainEquation"
                   label="#编号公式"
                   screentip="实验：插入公式内部 # 编号"
@@ -25,25 +18,12 @@
                   imageMso="EquationInsertNew"
                   size="large"
                   onAction="RibbonInsertInlineEquation" />
-          <button id="InsertChapterEquation"
-                  label="章节编号"
-                  screentip="插入章节编号公式"
-                  supertip="使用标题 1 章节号加公式流水号，例如 2-3。"
-                  imageMso="CaptionInsert"
-                  size="large"
-                  onAction="RibbonInsertChapterHyphen" />
           <button id="InsertHashChapterEquation"
                   label="#章节编号"
                   screentip="实验：插入公式内部章节编号"
                   supertip="按 Word 公式编辑器的 # 编号路线插入章节-公式编号；章节值来自 EqNB 章节起点。"
                   imageMso="CaptionInsert"
                   onAction="RibbonInsertHashChapterHyphen" />
-          <button id="InsertChapterDotEquation"
-                  label="章节.编号"
-                  screentip="插入句点分隔的章节编号公式"
-                  supertip="使用标题 1 章节号加公式流水号，例如 2.3。"
-                  imageMso="Numbering"
-                  onAction="RibbonInsertChapterDot" />
           <button id="MarkChapterStart"
                   label="章节起点"
                   screentip="设置公式章节起点"
