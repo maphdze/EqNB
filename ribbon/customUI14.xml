@@ -65,6 +65,12 @@
                   supertip="为当前文档设置统一引用格式，例如 ({n})、式({n})、Eq.({n}) 或 [{n}]。"
                   imageMso="FieldCodes"
                   onAction="RibbonSetReferenceFormat" />
+          <button id="SetEquationNumberFormat"
+                  label="编号格式"
+                  screentip="设置公式编号格式"
+                  supertip="为当前文档设置公式编号方式、数字样式、定界符和章节分隔符。"
+                  imageMso="BulletsAndNumbering"
+                  onAction="RibbonSetNumberFormat" />
           <button id="RefreshEquationFields"
                   label="刷新"
                   screentip="刷新编号和引用"
