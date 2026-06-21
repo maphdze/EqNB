@@ -233,13 +233,29 @@ Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optio
 
     doc.Fields.Update
 
-    ' Keep the editable placeholder selected. In Word versions that honor the
-    ' equation # parser, pressing Enter inside the equation finishes the layout.
+    TryFinalizeHashEquation doc, hashRangeStart, hashRangeEnd
+
     doc.Range(placeholderStart, placeholderEnd).Select
     Exit Sub
 
 Failed:
     MsgBox "Failed to insert hash equation line: " & Err.Description, vbCritical, APP_TITLE
+End Sub
+
+Private Sub TryFinalizeHashEquation(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long)
+    On Error GoTo GiveUp
+
+    Dim equationRange As Range
+    Set equationRange = FindEquationRangeAt(doc, rangeStart, rangeEnd)
+    equationRange.Select
+    Selection.Collapse wdCollapseEnd
+
+    ' Word's equation-internal # numbering is finalized by an interactive Enter
+    ' at the end of the equation. This mirrors the manual tutorial workflow.
+    Selection.TypeParagraph
+    DoEvents
+
+GiveUp:
 End Sub
 
 Public Sub MarkEquationChapterStart()
