@@ -234,7 +234,6 @@ Public Sub InsertHashEquationLine(Optional ByVal mode As String = "plain", Optio
     doc.Fields.Update
 
     TryFinalizeHashEquation doc, hashRangeStart, hashRangeEnd
-
     doc.Range(placeholderStart, placeholderEnd).Select
     Exit Sub
 
@@ -242,7 +241,7 @@ Failed:
     MsgBox "Failed to insert hash equation line: " & Err.Description, vbCritical, APP_TITLE
 End Sub
 
-Private Sub TryFinalizeHashEquation(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long)
+Private Function TryFinalizeHashEquation(ByVal doc As Document, ByVal rangeStart As Long, ByVal rangeEnd As Long) As Boolean
     On Error GoTo GiveUp
 
     Dim equationRange As Range
@@ -252,11 +251,16 @@ Private Sub TryFinalizeHashEquation(ByVal doc As Document, ByVal rangeStart As L
 
     ' Word's equation-internal # numbering is finalized by an interactive Enter
     ' at the end of the equation. This mirrors the manual tutorial workflow.
-    Selection.TypeParagraph
+    Application.Activate
     DoEvents
+    SendKeys "{ENTER}", True
+    DoEvents
+    TryFinalizeHashEquation = True
+    Exit Function
 
 GiveUp:
-End Sub
+    TryFinalizeHashEquation = False
+End Function
 
 Public Sub MarkEquationChapterStart()
     On Error GoTo Failed
