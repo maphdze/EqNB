@@ -27,12 +27,25 @@ release\EqNB.dotm
 
 ## Install
 
-Copy `release\EqNB.dotm` to:
+Run:
+
+```powershell
+cd C:\Software\AI\Word公式编辑器
+powershell -ExecutionPolicy Bypass -File tools\Install-EqNB.ps1
+```
+
+The script copies `release\EqNB.dotm` to:
 
 ```text
 %APPDATA%\Microsoft\Word\STARTUP
 ```
 
 Restart Word. The `EqNB` tab should appear in the ribbon.
+
+To uninstall:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools\Uninstall-EqNB.ps1
+```
 
 More details are in `docs\dotm-install.md`.
