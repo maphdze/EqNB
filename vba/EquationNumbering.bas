@@ -586,38 +586,13 @@ End Sub
 Public Sub SetEquationNumberFormat()
     On Error GoTo Failed
 
-    Dim modeChoice As String
-    modeChoice = InputBox("Number mode:" & vbCrLf & _
-        "1 = equation number only, e.g. (1)" & vbCrLf & _
-        "2 = chapter-equation number, e.g. (1-1)", _
-        "Equation Number Format", IIf(GetNumberMode(ActiveDocument) = "chapter", "2", "1"))
-    If Len(Trim$(modeChoice)) = 0 Then Exit Sub
-
     Dim numberMode As String
-    If Trim$(modeChoice) = "2" Then
-        numberMode = "chapter"
-    ElseIf Trim$(modeChoice) = "1" Then
-        numberMode = "plain"
-    Else
-        MsgBox "Please enter 1 or 2.", vbExclamation, APP_TITLE
-        Exit Sub
-    End If
-
     Dim chapterFormat As String
-    chapterFormat = PromptNumberFormat("Chapter number format", GetChapterNumberFormat(ActiveDocument))
-    If Len(chapterFormat) = 0 Then Exit Sub
-
     Dim equationFormat As String
-    equationFormat = PromptNumberFormat("Equation number format", GetEquationNumberFormat(ActiveDocument))
-    If Len(equationFormat) = 0 Then Exit Sub
-
     Dim delimiter As String
-    delimiter = PromptDelimiter(GetEquationDelimiter(ActiveDocument))
-    If Len(delimiter) = 0 Then Exit Sub
-
     Dim separator As String
-    separator = PromptSeparator(GetEquationSeparator(ActiveDocument))
-    If Len(separator) = 0 Then Exit Sub
+
+    If Not PromptNumberFormatPreset(numberMode, chapterFormat, equationFormat, delimiter, separator) Then Exit Sub
 
     SetDocumentVariable ActiveDocument, NUMBER_MODE_VARIABLE, numberMode
     SetDocumentVariable ActiveDocument, CHAPTER_NUMBER_FORMAT_VARIABLE, chapterFormat
@@ -633,6 +608,117 @@ Public Sub SetEquationNumberFormat()
 Failed:
     MsgBox "Failed to set equation number format: " & Err.Description, vbCritical, APP_TITLE
 End Sub
+
+Private Function PromptNumberFormatPreset(ByRef numberMode As String, ByRef chapterFormat As String, ByRef equationFormat As String, ByRef delimiter As String, ByRef separator As String) As Boolean
+    Dim answer As String
+    answer = InputBox("Equation number format:" & vbCrLf & _
+        "1 = (1)" & vbCrLf & _
+        "2 = (1.1)" & vbCrLf & _
+        "3 = (1-1)" & vbCrLf & _
+        "4 = [1]" & vbCrLf & _
+        "5 = [1.1]" & vbCrLf & _
+        "6 = [1-1]" & vbCrLf & _
+        "9 = custom", "Equation Number Format", CurrentNumberPresetChoice(ActiveDocument))
+
+    answer = Trim$(answer)
+    If Len(answer) = 0 Then Exit Function
+
+    chapterFormat = "ARABIC"
+    equationFormat = "ARABIC"
+
+    Select Case answer
+        Case "1"
+            numberMode = "plain"
+            delimiter = "paren"
+            separator = "-"
+        Case "2"
+            numberMode = "chapter"
+            delimiter = "paren"
+            separator = "."
+        Case "3"
+            numberMode = "chapter"
+            delimiter = "paren"
+            separator = "-"
+        Case "4"
+            numberMode = "plain"
+            delimiter = "bracket"
+            separator = "-"
+        Case "5"
+            numberMode = "chapter"
+            delimiter = "bracket"
+            separator = "."
+        Case "6"
+            numberMode = "chapter"
+            delimiter = "bracket"
+            separator = "-"
+        Case "9"
+            PromptNumberFormatPreset = PromptCustomNumberFormat(numberMode, chapterFormat, equationFormat, delimiter, separator)
+            Exit Function
+        Case Else
+            MsgBox "Please enter 1, 2, 3, 4, 5, 6, or 9.", vbExclamation, APP_TITLE
+            Exit Function
+    End Select
+
+    PromptNumberFormatPreset = True
+End Function
+
+Private Function PromptCustomNumberFormat(ByRef numberMode As String, ByRef chapterFormat As String, ByRef equationFormat As String, ByRef delimiter As String, ByRef separator As String) As Boolean
+    Dim modeChoice As String
+    modeChoice = InputBox("Number mode:" & vbCrLf & _
+        "1 = equation number only, e.g. (1)" & vbCrLf & _
+        "2 = chapter-equation number, e.g. (1-1)", _
+        "Equation Number Format", IIf(GetNumberMode(ActiveDocument) = "chapter", "2", "1"))
+    If Len(Trim$(modeChoice)) = 0 Then Exit Function
+
+    If Trim$(modeChoice) = "2" Then
+        numberMode = "chapter"
+    ElseIf Trim$(modeChoice) = "1" Then
+        numberMode = "plain"
+    Else
+        MsgBox "Please enter 1 or 2.", vbExclamation, APP_TITLE
+        Exit Function
+    End If
+
+    chapterFormat = PromptNumberFormat("Chapter number format", GetChapterNumberFormat(ActiveDocument))
+    If Len(chapterFormat) = 0 Then Exit Function
+
+    equationFormat = PromptNumberFormat("Equation number format", GetEquationNumberFormat(ActiveDocument))
+    If Len(equationFormat) = 0 Then Exit Function
+
+    delimiter = PromptDelimiter(GetEquationDelimiter(ActiveDocument))
+    If Len(delimiter) = 0 Then Exit Function
+
+    separator = PromptSeparator(GetEquationSeparator(ActiveDocument))
+    If Len(separator) = 0 Then Exit Function
+
+    PromptCustomNumberFormat = True
+End Function
+
+Private Function CurrentNumberPresetChoice(ByVal doc As Document) As String
+    Dim numberMode As String
+    Dim delimiter As String
+    Dim separator As String
+
+    numberMode = GetNumberMode(doc)
+    delimiter = GetEquationDelimiter(doc)
+    separator = GetEquationSeparator(doc)
+
+    If numberMode = "plain" And delimiter = "paren" Then
+        CurrentNumberPresetChoice = "1"
+    ElseIf numberMode = "chapter" And delimiter = "paren" And separator = "." Then
+        CurrentNumberPresetChoice = "2"
+    ElseIf numberMode = "chapter" And delimiter = "paren" And separator = "-" Then
+        CurrentNumberPresetChoice = "3"
+    ElseIf numberMode = "plain" And delimiter = "bracket" Then
+        CurrentNumberPresetChoice = "4"
+    ElseIf numberMode = "chapter" And delimiter = "bracket" And separator = "." Then
+        CurrentNumberPresetChoice = "5"
+    ElseIf numberMode = "chapter" And delimiter = "bracket" And separator = "-" Then
+        CurrentNumberPresetChoice = "6"
+    Else
+        CurrentNumberPresetChoice = "9"
+    End If
+End Function
 
 Private Function PromptNumberFormat(ByVal title As String, ByVal currentFormat As String) As String
     Dim answer As String
