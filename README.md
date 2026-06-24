@@ -1,5 +1,9 @@
 # EqNB
 
+<p align="center">
+  <img src="assets/eqnb-icon.png" alt="EqNB icon" width="160">
+</p>
+
 EqNB is a Microsoft Word add-in for inserting numbered display equations and
 cross-references. It is implemented as a macro-enabled Word template (`.dotm`).
 
